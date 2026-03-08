@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
 import { getPackageCounts } from "@/lib/services/package-service";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -38,37 +39,43 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
         {role !== "MORADOR" && (
-          <Card>
+          <Link href="/encomendas/registros-pendentes">
+            <Card className="transition-colors hover:bg-accent/50">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Registro Pendente</CardTitle>
+                <ClipboardList className="h-4 w-4 text-yellow-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{counts.REGISTRO_PENDENTE}</div>
+                <CardDescription>aguardando dados completos</CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+        <Link href="/encomendas/entregas-pendentes">
+          <Card className="transition-colors hover:bg-accent/50">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Registro Pendente</CardTitle>
-              <ClipboardList className="h-4 w-4 text-yellow-500" />
+              <CardTitle className="text-sm font-medium">Entrega Pendente</CardTitle>
+              <Truck className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{counts.REGISTRO_PENDENTE}</div>
-              <CardDescription>aguardando dados completos</CardDescription>
+              <div className="text-2xl font-bold">{counts.ENTREGA_PENDENTE}</div>
+              <CardDescription>aguardando entrega</CardDescription>
             </CardContent>
           </Card>
-        )}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Entrega Pendente</CardTitle>
-            <Truck className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{counts.ENTREGA_PENDENTE}</div>
-            <CardDescription>aguardando entrega</CardDescription>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{counts.ENTREGA_CONCLUIDA}</div>
-            <CardDescription>entregas finalizadas</CardDescription>
-          </CardContent>
-        </Card>
+        </Link>
+        <Link href="/encomendas/concluidas">
+          <Card className="transition-colors hover:bg-accent/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Concluídas</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{counts.ENTREGA_CONCLUIDA}</div>
+              <CardDescription>entregas finalizadas</CardDescription>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );

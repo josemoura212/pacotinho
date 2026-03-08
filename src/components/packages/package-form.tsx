@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ResidentSelector } from "@/components/packages/resident-selector";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
@@ -89,6 +95,12 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
     const trackingCode = (fd.get("trackingCode") as string)?.trim() || undefined;
     const notes = (fd.get("notes") as string)?.trim() || undefined;
 
+    if (!isCompleting && !photoFilename) {
+      toast.error("A foto da encomenda é obrigatória");
+      setIsLoading(false);
+      return;
+    }
+
     if (isCompleting) {
       if (!trackingCode) {
         toast.error("Código de rastreio é obrigatório para completar");
@@ -146,7 +158,9 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
 
     const isQuick = !trackingCode || !selectedResident?.id;
     toast.success(isQuick ? "Registro rápido criado!" : "Encomenda cadastrada!");
-    router.push(isQuick ? "/encomendas/registros-pendentes" : "/encomendas/entregas-pendentes");
+    router.push(
+      isQuick ? "/encomendas/registros-pendentes" : "/encomendas/entregas-pendentes",
+    );
     router.refresh();
   }
 
@@ -167,7 +181,9 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
               <Label htmlFor="trackingCode">
                 Código de rastreio
                 {!isCompleting && (
-                  <span className="ml-1 text-xs text-muted-foreground">(opcional p/ registro rápido)</span>
+                  <span className="ml-1 text-xs text-muted-foreground">
+                    (opcional p/ registro rápido)
+                  </span>
                 )}
               </Label>
               <Input
@@ -192,11 +208,7 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
                 }
                 disabled={isLoading}
                 required={isCompleting}
-                label={
-                  isCompleting
-                    ? "Morador"
-                    : "Morador (opcional p/ registro rápido)"
-                }
+                label={isCompleting ? "Morador" : "Morador (opcional p/ registro rápido)"}
               />
             </div>
 

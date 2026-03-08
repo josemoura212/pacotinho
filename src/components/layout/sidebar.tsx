@@ -17,14 +17,13 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 border-r bg-sidebar md:block">
-      <div className="flex h-14 items-center gap-2 border-b px-6">
+      <Link href="/dashboard" className="flex h-14 items-center gap-2 border-b px-6">
         <Package className="h-5 w-5" />
         <span className="font-semibold">Pacotinho</span>
-      </div>
+      </Link>
       <nav className="flex flex-col gap-1 p-4">
         {items.map((item) => {
-          const isActive =
-            pathname === item.href || pathname.startsWith(`${item.href}/`);
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

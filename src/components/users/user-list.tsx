@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -44,9 +45,12 @@ import {
   MoreVertical,
   Copy,
   Check,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { UserWithoutPassword } from "@/lib/types/user";
+import type { UserWithoutPassword, UserRole } from "@/lib/types/user";
 
 const roleLabels = {
   ADMIN: "Administrador",
@@ -60,6 +64,10 @@ const roleColors = {
   MORADOR: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
 } as const;
 
+const ITEMS_PER_PAGE = 10;
+
+type RoleFilter = "TODOS" | UserRole;
+
 interface UserListProps {
   users: UserWithoutPassword[];
 }
@@ -72,6 +80,45 @@ export function UserList({ users }: UserListProps) {
   const [resetTarget, setResetTarget] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("TODOS");
+  const [page, setPage] = useState(1);
+
+  const filtered = useMemo(() => {
+    let result = users;
+
+    if (roleFilter !== "TODOS") {
+      result = result.filter((u) => u.role === roleFilter);
+    }
+
+    if (search.trim()) {
+      const lower = search.toLowerCase();
+      result = result.filter(
+        (u) =>
+          u.name.toLowerCase().includes(lower) ||
+          u.email.toLowerCase().includes(lower),
+      );
+    }
+
+    return result;
+  }, [users, search, roleFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
+
+  function handleSearchChange(value: string) {
+    setSearch(value);
+    setPage(1);
+  }
+
+  function handleRoleChange(role: RoleFilter) {
+    setRoleFilter(role);
+    setPage(1);
+  }
 
   async function handleDelete() {
     if (!deleteTarget) return;
@@ -115,6 +162,13 @@ export function UserList({ users }: UserListProps) {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const roleFilters: { label: string; value: RoleFilter }[] = [
+    { label: "Todos", value: "TODOS" },
+    { label: "Admin", value: "ADMIN" },
+    { label: "Porteiro", value: "PORTEIRO" },
+    { label: "Morador", value: "MORADOR" },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -130,15 +184,42 @@ export function UserList({ users }: UserListProps) {
         </Button>
       </div>
 
+      <div className="space-y-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou e-mail..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto">
+          {roleFilters.map((rf) => (
+            <Button
+              key={rf.value}
+              variant={roleFilter === rf.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleRoleChange(rf.value)}
+            >
+              {rf.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-3">
-        {users.length === 0 && (
+        {paginated.length === 0 && (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              Nenhum usuário cadastrado.
+              {search || roleFilter !== "TODOS"
+                ? "Nenhum usuário encontrado com os filtros aplicados."
+                : "Nenhum usuário cadastrado."}
             </CardContent>
           </Card>
         )}
-        {users.map((user) => (
+        {paginated.map((user) => (
           <Card key={user.id}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -201,6 +282,36 @@ export function UserList({ users }: UserListProps) {
           </Card>
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {filtered.length} usuário{filtered.length !== 1 ? "s" : ""} encontrado
+            {filtered.length !== 1 ? "s" : ""}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage <= 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
         <AlertDialogContent>

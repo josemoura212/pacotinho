@@ -12,6 +12,7 @@ import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
   label: string;
+  shortLabel: string;
   href: string;
   icon: LucideIcon;
   roles: UserRole[];
@@ -20,42 +21,49 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   {
     label: "Dashboard",
+    shortLabel: "Início",
     href: "/dashboard",
     icon: LayoutDashboard,
     roles: ["ADMIN", "PORTEIRO", "MORADOR"],
   },
   {
     label: "Nova Encomenda",
+    shortLabel: "Nova",
     href: "/encomendas/nova",
     icon: PackagePlus,
     roles: ["ADMIN", "PORTEIRO"],
   },
   {
     label: "Registros Pendentes",
+    shortLabel: "Registros",
     href: "/encomendas/registros-pendentes",
     icon: ClipboardList,
     roles: ["ADMIN", "PORTEIRO"],
   },
   {
     label: "Entregas Pendentes",
+    shortLabel: "Entregas",
     href: "/encomendas/entregas-pendentes",
     icon: Truck,
     roles: ["ADMIN", "PORTEIRO", "MORADOR"],
   },
   {
     label: "Concluídas",
+    shortLabel: "Concluídas",
     href: "/encomendas/concluidas",
     icon: CheckCircle,
     roles: ["ADMIN", "PORTEIRO", "MORADOR"],
   },
   {
     label: "Usuários",
+    shortLabel: "Usuários",
     href: "/usuarios",
     icon: Users,
     roles: ["ADMIN"],
   },
   {
     label: "Relatórios",
+    shortLabel: "Relatórios",
     href: "/relatorios",
     icon: BarChart3,
     roles: ["ADMIN"],

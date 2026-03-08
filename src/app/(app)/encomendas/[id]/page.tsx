@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PackageStatusBadge } from "@/components/packages/package-status-badge";
 import { PackageHistory } from "@/components/packages/package-history";
 import { PackageActions } from "@/components/packages/package-actions";
+import { PackagePhoto } from "@/components/packages/package-photo";
 import type { UserRole } from "@/lib/types/user";
 import { MapPin, User, Calendar, Hash, FileText } from "lucide-react";
 
@@ -69,13 +70,7 @@ export default async function PackageDetailPage({
               {pkg.notes}
             </div>
           )}
-          {pkg.photoPath && (
-            <img
-              src={`/api/images/${pkg.photoPath}`}
-              alt="Foto da encomenda"
-              className="mt-2 max-h-64 rounded-lg object-contain"
-            />
-          )}
+          {pkg.photoPath && <PackagePhoto src={`/api/images/${pkg.photoPath}`} />}
         </CardContent>
       </Card>
 

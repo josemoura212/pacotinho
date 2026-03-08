@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, BellOff, LogOut, Moon, RefreshCw, Sun } from "lucide-react";
+import { Bell, BellOff, LogOut, Moon, Sun } from "lucide-react";
 import { subscribeToPush } from "@/components/pwa/service-worker-register";
 
 const roleLabels = {
@@ -102,18 +102,6 @@ export function UserMenu() {
             <Moon className="mr-2 h-4 w-4" />
           )}
           {theme === "dark" ? "Tema claro" : "Tema escuro"}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={async () => {
-            const keys = await caches.keys();
-            await Promise.all(keys.map((key) => caches.delete(key)));
-            const regs = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(regs.map((r) => r.unregister()));
-            window.location.reload();
-          }}
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Limpar cache
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
