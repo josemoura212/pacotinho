@@ -40,32 +40,39 @@ export async function createPackage(data: CreatePackageInput, registeredById: st
 
   const status = isComplete ? "ENTREGA_PENDENTE" : "REGISTRO_PENDENTE";
 
-  const [pkg] = await db
-    .insert(packages)
-    .values({
-      trackingCode: data.trackingCode ?? null,
-      residentId: data.residentId ?? null,
-      recipientName,
-      apartment,
-      block,
-      photoPath: data.photoPath ?? null,
-      notes: data.notes ?? null,
-      status,
-      registeredById,
-    })
-    .returning();
+  const pkg = await db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(packages)
+      .values({
+        trackingCode: data.trackingCode ?? null,
+        residentId: data.residentId ?? null,
+        recipientName,
+        apartment,
+        block,
+        photoPath: data.photoPath ?? null,
+        notes: data.notes ?? null,
+        status,
+        registeredById,
+      })
+      .returning();
 
-  await createAuditLog({
-    packageId: pkg.id,
-    userId: registeredById,
-    action: "CRIACAO",
-    changes: {
-      trackingCode: data.trackingCode,
-      residentId: data.residentId,
-      notes: data.notes,
-      photoPath: data.photoPath,
-      status,
-    },
+    await createAuditLog(
+      {
+        packageId: created.id,
+        userId: registeredById,
+        action: "CRIACAO",
+        changes: {
+          trackingCode: data.trackingCode,
+          residentId: data.residentId,
+          notes: data.notes,
+          photoPath: data.photoPath,
+          status,
+        },
+      },
+      tx,
+    );
+
+    return created;
   });
 
   if (isComplete && data.residentId) {
@@ -108,31 +115,38 @@ export async function completeRegistration(
     throw new Error("Morador não encontrado");
   }
 
-  const [updated] = await db
-    .update(packages)
-    .set({
-      trackingCode: data.trackingCode,
-      residentId: data.residentId,
-      recipientName: resident.name,
-      apartment: resident.apartment,
-      block: resident.block,
-      photoPath: data.photoPath ?? existing.photoPath,
-      notes: data.notes ?? existing.notes,
-      status: "ENTREGA_PENDENTE",
-      updatedAt: new Date(),
-    })
-    .where(eq(packages.id, id))
-    .returning();
+  const updated = await db.transaction(async (tx) => {
+    const [result] = await tx
+      .update(packages)
+      .set({
+        trackingCode: data.trackingCode,
+        residentId: data.residentId,
+        recipientName: resident.name,
+        apartment: resident.apartment,
+        block: resident.block,
+        photoPath: data.photoPath ?? existing.photoPath,
+        notes: data.notes ?? existing.notes,
+        status: "ENTREGA_PENDENTE",
+        updatedAt: new Date(),
+      })
+      .where(eq(packages.id, id))
+      .returning();
 
-  await createAuditLog({
-    packageId: id,
-    userId,
-    action: "MUDANCA_STATUS",
-    changes: {
-      trackingCode: data.trackingCode,
-      residentId: data.residentId,
-      status: "ENTREGA_PENDENTE",
-    },
+    await createAuditLog(
+      {
+        packageId: id,
+        userId,
+        action: "MUDANCA_STATUS",
+        changes: {
+          trackingCode: data.trackingCode,
+          residentId: data.residentId,
+          status: "ENTREGA_PENDENTE",
+        },
+      },
+      tx,
+    );
+
+    return result;
   });
 
   sendPushToUser(data.residentId, {
@@ -181,20 +195,25 @@ export async function updatePackage(
     }
   }
 
-  const [updated] = await db
-    .update(packages)
-    .set(updateData)
-    .where(eq(packages.id, id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(packages)
+      .set(updateData)
+      .where(eq(packages.id, id))
+      .returning();
 
-  await createAuditLog({
-    packageId: id,
-    userId,
-    action: "EDICAO",
-    changes: updateData,
+    await createAuditLog(
+      {
+        packageId: id,
+        userId,
+        action: "EDICAO",
+        changes: updateData,
+      },
+      tx,
+    );
+
+    return updated;
   });
-
-  return updated;
 }
 
 export async function deliverPackage(id: string, deliveredById: string) {
@@ -208,25 +227,30 @@ export async function deliverPackage(id: string, deliveredById: string) {
     throw new Error("Encomenda não está com entrega pendente");
   }
 
-  const [updated] = await db
-    .update(packages)
-    .set({
-      status: "ENTREGA_CONCLUIDA",
-      deliveredById,
-      deliveredAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(packages.id, id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(packages)
+      .set({
+        status: "ENTREGA_CONCLUIDA",
+        deliveredById,
+        deliveredAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(packages.id, id))
+      .returning();
 
-  await createAuditLog({
-    packageId: id,
-    userId: deliveredById,
-    action: "ENTREGA_CONCLUIDA",
-    changes: { status: "ENTREGA_CONCLUIDA", deliveredById },
+    await createAuditLog(
+      {
+        packageId: id,
+        userId: deliveredById,
+        action: "ENTREGA_CONCLUIDA",
+        changes: { status: "ENTREGA_CONCLUIDA", deliveredById },
+      },
+      tx,
+    );
+
+    return updated;
   });
-
-  return updated;
 }
 
 export async function confirmReceipt(id: string, receivedById: string) {
@@ -240,24 +264,29 @@ export async function confirmReceipt(id: string, receivedById: string) {
     throw new Error("Encomenda não está com entrega concluída");
   }
 
-  const [updated] = await db
-    .update(packages)
-    .set({
-      receivedById,
-      receivedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(packages.id, id))
-    .returning();
+  return db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(packages)
+      .set({
+        receivedById,
+        receivedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(packages.id, id))
+      .returning();
 
-  await createAuditLog({
-    packageId: id,
-    userId: receivedById,
-    action: "CONFIRMACAO_RECEBIMENTO",
-    changes: { receivedById },
+    await createAuditLog(
+      {
+        packageId: id,
+        userId: receivedById,
+        action: "CONFIRMACAO_RECEBIMENTO",
+        changes: { receivedById },
+      },
+      tx,
+    );
+
+    return updated;
   });
-
-  return updated;
 }
 
 export async function getPackageById(id: string) {
@@ -287,10 +316,11 @@ export async function listPackages(
   }
 
   if (filters.search) {
+    const escaped = filters.search.replace(/[%_\\]/g, "\\$&");
     conditions.push(
       or(
-        ilike(packages.recipientName, `%${filters.search}%`),
-        ilike(packages.trackingCode, `%${filters.search}%`),
+        ilike(packages.recipientName, `%${escaped}%`),
+        ilike(packages.trackingCode, `%${escaped}%`),
       ),
     );
   }

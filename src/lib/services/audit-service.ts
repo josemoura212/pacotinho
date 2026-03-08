@@ -3,13 +3,17 @@ import { packageAuditLogs, users } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
 import type { AuditAction } from "@/lib/types/package";
 
-export async function createAuditLog(data: {
-  packageId: string;
-  userId: string;
-  action: AuditAction;
-  changes?: Record<string, unknown> | null;
-}) {
-  await db.insert(packageAuditLogs).values({
+export async function createAuditLog(
+  data: {
+    packageId: string;
+    userId: string;
+    action: AuditAction;
+    changes?: Record<string, unknown> | null;
+  },
+  tx?: { insert: typeof db.insert },
+) {
+  const executor = tx ?? db;
+  await executor.insert(packageAuditLogs).values({
     packageId: data.packageId,
     userId: data.userId,
     action: data.action,
