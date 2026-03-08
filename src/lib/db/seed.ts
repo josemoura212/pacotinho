@@ -31,6 +31,7 @@ async function seed() {
     passwordHash,
     role: "ADMIN",
     active: true,
+    mustChangePassword: true,
   });
 
   console.log("Seed concluído: admin@pacotinho.com / Admin@123");

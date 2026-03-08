@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -19,6 +20,11 @@ const userColumns = {
   updatedAt: users.updatedAt,
 } as const;
 
+function secureRandomIndex(max: number): number {
+  const bytes = randomBytes(4);
+  return bytes.readUInt32BE(0) % max;
+}
+
 function generatePassword(): string {
   const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const lower = "abcdefghijklmnopqrstuvwxyz";
@@ -27,17 +33,22 @@ function generatePassword(): string {
   const all = upper + lower + digits + special;
 
   const parts = [
-    upper[Math.floor(Math.random() * upper.length)],
-    lower[Math.floor(Math.random() * lower.length)],
-    digits[Math.floor(Math.random() * digits.length)],
-    special[Math.floor(Math.random() * special.length)],
+    upper[secureRandomIndex(upper.length)],
+    lower[secureRandomIndex(lower.length)],
+    digits[secureRandomIndex(digits.length)],
+    special[secureRandomIndex(special.length)],
   ];
 
   for (let i = 0; i < 4; i++) {
-    parts.push(all[Math.floor(Math.random() * all.length)]);
+    parts.push(all[secureRandomIndex(all.length)]);
   }
 
-  return parts.sort(() => Math.random() - 0.5).join("");
+  for (let i = parts.length - 1; i > 0; i--) {
+    const j = secureRandomIndex(i + 1);
+    [parts[i], parts[j]] = [parts[j], parts[i]];
+  }
+
+  return parts.join("");
 }
 
 export async function listUsers(): Promise<UserWithoutPassword[]> {
