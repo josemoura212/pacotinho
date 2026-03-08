@@ -1,0 +1,86 @@
+import { auth } from "@/lib/auth/auth";
+import { redirect, notFound } from "next/navigation";
+import { getPackageById } from "@/lib/services/package-service";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PackageStatusBadge } from "@/components/packages/package-status-badge";
+import { PackageHistory } from "@/components/packages/package-history";
+import { PackageActions } from "@/components/packages/package-actions";
+import type { UserRole } from "@/lib/types/user";
+import { MapPin, User, Calendar, Hash, FileText } from "lucide-react";
+
+export default async function PackageDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await auth();
+  if (!session) redirect("/login");
+
+  const { id } = await params;
+  const pkg = await getPackageById(id);
+  if (!pkg) notFound();
+
+  const role = session.user.role as UserRole;
+  if (role === "MORADOR" && pkg.residentId !== session.user.id) {
+    redirect("/dashboard");
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight">Detalhe da Encomenda</h1>
+        <PackageStatusBadge status={pkg.status} />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{pkg.recipientName || "Destinatário não identificado"}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          {pkg.apartment && (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              Apto {pkg.apartment} - Bloco {pkg.block}
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Hash className="h-4 w-4 text-muted-foreground" />
+            {pkg.trackingCode}
+          </div>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            Registrado em {new Date(pkg.createdAt).toLocaleString("pt-BR")}
+          </div>
+          {pkg.deliveredAt && (
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              Entregue em {new Date(pkg.deliveredAt).toLocaleString("pt-BR")}
+            </div>
+          )}
+          {pkg.receivedAt && (
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              Recebimento confirmado em {new Date(pkg.receivedAt).toLocaleString("pt-BR")}
+            </div>
+          )}
+          {pkg.notes && (
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              {pkg.notes}
+            </div>
+          )}
+          {pkg.photoPath && (
+            <img
+              src={`/api/images/${pkg.photoPath}`}
+              alt="Foto da encomenda"
+              className="mt-2 max-h-64 rounded-lg object-contain"
+            />
+          )}
+        </CardContent>
+      </Card>
+
+      <PackageActions pkg={pkg} userRole={role} />
+      <PackageHistory packageId={pkg.id} />
+    </div>
+  );
+}
