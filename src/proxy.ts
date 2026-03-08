@@ -20,7 +20,7 @@ export const proxy = auth((req) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (req.auth.user.mustChangePassword && pathname !== "/alterar-senha") {
+  if (req.auth.user?.mustChangePassword && pathname !== "/alterar-senha") {
     return NextResponse.redirect(new URL("/alterar-senha", req.nextUrl.origin));
   }
 
