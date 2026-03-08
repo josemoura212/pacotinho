@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { confirmReceipt, getPackageById } from "@/lib/services/package-service";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { confirmReceipt, getPackageById } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
 
 export async function POST(
   _request: Request,

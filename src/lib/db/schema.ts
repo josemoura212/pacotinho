@@ -1,14 +1,14 @@
 import {
-  pgTable,
-  uuid,
-  varchar,
   boolean,
-  timestamp,
-  text,
+  index,
   jsonb,
   pgEnum,
-  index,
+  pgTable,
+  text,
+  timestamp,
   uniqueIndex,
+  uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["MORADOR", "PORTEIRO", "ADMIN"]);

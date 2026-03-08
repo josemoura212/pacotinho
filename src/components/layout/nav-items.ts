@@ -1,14 +1,14 @@
+import type { LucideIcon } from "lucide-react";
 import {
+  BarChart3,
+  CheckCircle,
+  ClipboardList,
   LayoutDashboard,
   PackagePlus,
-  ClipboardList,
   Truck,
-  CheckCircle,
   Users,
-  BarChart3,
 } from "lucide-react";
 import type { UserRole } from "@/lib/types/user";
-import type { LucideIcon } from "lucide-react";
 
 export interface NavItem {
   label: string;

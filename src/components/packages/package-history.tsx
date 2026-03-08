@@ -1,8 +1,8 @@
 "use client";
 
+import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock } from "lucide-react";
 
 const actionLabels: Record<string, string> = {
   CRIACAO: "Cadastro",

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { KeyRound } from "lucide-react";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -11,8 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "sonner";
-import { KeyRound } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 
 export function ChangePasswordForm() {

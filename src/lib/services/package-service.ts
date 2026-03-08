@@ -1,16 +1,16 @@
+import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { packages, users } from "@/lib/db/schema";
-import { eq, and, desc, or, ilike, sql } from "drizzle-orm";
-import { createAuditLog } from "./audit-service";
-import { sendPushToUser } from "./push-service";
-import { createNotification } from "./notification-service";
-import type {
-  CreatePackageInput,
-  UpdatePackageInput,
-  CompleteRegistrationInput,
-} from "@/lib/validations/package";
 import type { PackageStatus } from "@/lib/types/package";
 import type { UserRole } from "@/lib/types/user";
+import type {
+  CompleteRegistrationInput,
+  CreatePackageInput,
+  UpdatePackageInput,
+} from "@/lib/validations/package";
+import { createAuditLog } from "./audit-service";
+import { createNotification } from "./notification-service";
+import { sendPushToUser } from "./push-service";
 
 export async function createPackage(data: CreatePackageInput, registeredById: string) {
   const isComplete = !!data.trackingCode && !!data.residentId;
@@ -81,8 +81,12 @@ export async function createPackage(data: CreatePackageInput, registeredById: st
       body: `${pkg.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
       url: `/encomendas/${pkg.id}`,
     };
-    sendPushToUser(data.residentId, payload).catch(() => {});
-    createNotification(data.residentId, payload).catch(() => {});
+    sendPushToUser(data.residentId, payload).catch((err) => {
+      console.error("Falha ao enviar push:", err);
+    });
+    createNotification(data.residentId, payload).catch((err) => {
+      console.error("Falha ao salvar notificação:", err);
+    });
   }
 
   return pkg;
@@ -164,8 +168,12 @@ export async function completeRegistration(
     body: `${updated.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
     url: `/encomendas/${updated.id}`,
   };
-  sendPushToUser(data.residentId, completePayload).catch(() => {});
-  createNotification(data.residentId, completePayload).catch(() => {});
+  sendPushToUser(data.residentId, completePayload).catch((err) => {
+    console.error("Falha ao enviar push:", err);
+  });
+  createNotification(data.residentId, completePayload).catch((err) => {
+    console.error("Falha ao salvar notificação:", err);
+  });
 
   return updated;
 }
@@ -237,23 +245,22 @@ export async function updatePackage(
       body: `${updated.recipientName}, sua encomenda foi atualizada`,
       url: `/encomendas/${id}`,
     };
-    sendPushToUser(updated.residentId, updatePayload).catch(() => {});
-    createNotification(updated.residentId, updatePayload).catch(() => {});
+    sendPushToUser(updated.residentId, updatePayload).catch((err) => {
+      console.error("Falha ao enviar push:", err);
+    });
+    createNotification(updated.residentId, updatePayload).catch((err) => {
+      console.error("Falha ao salvar notificação:", err);
+    });
   }
 
   return updated;
 }
 
 export async function deliverPackage(id: string, deliveredById: string) {
-  let residentId: string | null = null;
-  let recipientName: string | null = null;
-
   const updated = await db.transaction(async (tx) => {
     const [existing] = await tx
       .select({
         status: packages.status,
-        residentId: packages.residentId,
-        recipientName: packages.recipientName,
       })
       .from(packages)
       .where(eq(packages.id, id))
@@ -266,9 +273,6 @@ export async function deliverPackage(id: string, deliveredById: string) {
     if (existing.status !== "ENTREGA_PENDENTE") {
       throw new Error("Encomenda não está com entrega pendente");
     }
-
-    residentId = existing.residentId;
-    recipientName = existing.recipientName;
 
     const [result] = await tx
       .update(packages)
@@ -294,29 +298,28 @@ export async function deliverPackage(id: string, deliveredById: string) {
     return result;
   });
 
-  if (residentId) {
+  if (updated.residentId) {
     const deliverPayload = {
       title: "Encomenda entregue!",
-      body: `${recipientName}, sua encomenda foi entregue. Confirme o recebimento.`,
+      body: `${updated.recipientName}, sua encomenda foi entregue. Confirme o recebimento.`,
       url: `/encomendas/${id}`,
     };
-    sendPushToUser(residentId, deliverPayload).catch(() => {});
-    createNotification(residentId, deliverPayload).catch(() => {});
+    sendPushToUser(updated.residentId, deliverPayload).catch((err) => {
+      console.error("Falha ao enviar push:", err);
+    });
+    createNotification(updated.residentId, deliverPayload).catch((err) => {
+      console.error("Falha ao salvar notificação:", err);
+    });
   }
 
   return updated;
 }
 
 export async function confirmReceipt(id: string, receivedById: string) {
-  let residentId: string | null = null;
-  let recipientName: string | null = null;
-
   const updated = await db.transaction(async (tx) => {
     const [existing] = await tx
       .select({
         status: packages.status,
-        residentId: packages.residentId,
-        recipientName: packages.recipientName,
       })
       .from(packages)
       .where(eq(packages.id, id))
@@ -329,9 +332,6 @@ export async function confirmReceipt(id: string, receivedById: string) {
     if (existing.status !== "ENTREGA_CONCLUIDA") {
       throw new Error("Encomenda não está com entrega concluída");
     }
-
-    residentId = existing.residentId;
-    recipientName = existing.recipientName;
 
     const [result] = await tx
       .update(packages)
@@ -356,14 +356,18 @@ export async function confirmReceipt(id: string, receivedById: string) {
     return result;
   });
 
-  if (residentId) {
+  if (updated.residentId) {
     const confirmPayload = {
       title: "Recebimento confirmado",
-      body: `${recipientName}, o recebimento da sua encomenda foi confirmado`,
+      body: `${updated.recipientName}, o recebimento da sua encomenda foi confirmado`,
       url: `/encomendas/${id}`,
     };
-    sendPushToUser(residentId, confirmPayload).catch(() => {});
-    createNotification(residentId, confirmPayload).catch(() => {});
+    sendPushToUser(updated.residentId, confirmPayload).catch((err) => {
+      console.error("Falha ao enviar push:", err);
+    });
+    createNotification(updated.residentId, confirmPayload).catch((err) => {
+      console.error("Falha ao salvar notificação:", err);
+    });
   }
 
   return updated;

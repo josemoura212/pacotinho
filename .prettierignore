@@ -1,5 +1,0 @@
-node_modules
-.next
-drizzle/migrations
-pnpm-lock.yaml
-package-lock.json

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type { UserWithoutPassword } from "@/lib/types/user";
+import { useCallback, useEffect, useState } from "react";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserWithoutPassword } from "@/lib/types/user";
 
 export function useUsers() {
   const [users, setUsers] = useState<UserWithoutPassword[]>([]);

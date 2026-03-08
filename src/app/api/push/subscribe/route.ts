@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { saveSubscription, removeSubscription } from "@/lib/services/push-service";
+import { removeSubscription, saveSubscription } from "@/lib/services/push-service";
 import type { ApiResponse } from "@/lib/types/api";
 
 export async function POST(request: Request) {

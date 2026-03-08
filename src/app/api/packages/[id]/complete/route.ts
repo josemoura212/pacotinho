@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { completeRegistration } from "@/lib/services/package-service";
-import { completeRegistrationSchema } from "@/lib/validations/package";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { completeRegistration } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
+import { completeRegistrationSchema } from "@/lib/validations/package";
 
 export async function POST(
   request: Request,
@@ -43,8 +43,7 @@ export async function POST(
       data: pkg,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erro ao completar registro";
+    const message = error instanceof Error ? error.message : "Erro ao completar registro";
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
       { status: 400 },

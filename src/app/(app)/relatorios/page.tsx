@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth/auth";
+import { AlertTriangle, BarChart3, CheckCircle, Truck } from "lucide-react";
 import { redirect } from "next/navigation";
-import { getPackageCounts, listPackages } from "@/lib/services/package-service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PackageCard } from "@/components/packages/package-card";
-import { BarChart3, AlertTriangle, Truck, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/lib/auth/auth";
+import { getPackageCounts, listPackages } from "@/lib/services/package-service";
 
 export default async function RelatoriosPage() {
   const session = await auth();

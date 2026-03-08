@@ -1,5 +1,5 @@
-import type { packages } from "@/lib/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
+import type { packages } from "@/lib/db/schema";
 
 export type Package = InferSelectModel<typeof packages>;
 

@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { listPackages, createPackage } from "@/lib/services/package-service";
-import { createPackageSchema } from "@/lib/validations/package";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
-import type { PackageStatus } from "@/lib/types/package";
+import { createPackage, listPackages } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { PackageStatus } from "@/lib/types/package";
+import type { UserRole } from "@/lib/types/user";
+import { createPackageSchema } from "@/lib/validations/package";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -69,8 +69,7 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erro ao criar encomenda";
+    const message = error instanceof Error ? error.message : "Erro ao criar encomenda";
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
       { status: 400 },

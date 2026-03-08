@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 type PasswordInputProps = Omit<React.ComponentProps<"input">, "type">;
@@ -27,9 +27,7 @@ export function PasswordInput({ className, ...props }: PasswordInputProps) {
         tabIndex={-1}
       >
         {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        <span className="sr-only">
-          {visible ? "Ocultar senha" : "Mostrar senha"}
-        </span>
+        <span className="sr-only">{visible ? "Ocultar senha" : "Mostrar senha"}</span>
       </Button>
     </div>
   );

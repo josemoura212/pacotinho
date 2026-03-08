@@ -1,10 +1,10 @@
-import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
-import { listPackages } from "@/lib/services/package-service";
-import { PackageList } from "@/components/packages/package-list";
-import { PackageFilters } from "@/components/packages/package-filters";
-import type { UserRole } from "@/lib/types/user";
 import { Suspense } from "react";
+import { PackageFilters } from "@/components/packages/package-filters";
+import { PackageList } from "@/components/packages/package-list";
+import { auth } from "@/lib/auth/auth";
+import { listPackages } from "@/lib/services/package-service";
+import type { UserRole } from "@/lib/types/user";
 
 export default async function ConcluidasPage({
   searchParams,

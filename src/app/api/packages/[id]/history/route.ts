@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { getPackageHistory } from "@/lib/services/audit-service";
 import { getPackageById } from "@/lib/services/package-service";
-import type { UserRole } from "@/lib/types/user";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
 
 export async function GET(
   _request: Request,

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { getStatusLabel, getStatusColor } from "@/lib/utils/status";
 import type { PackageStatus } from "@/lib/types/package";
+import { getStatusColor, getStatusLabel } from "@/lib/utils/status";
 
 export function PackageStatusBadge({ status }: { status: PackageStatus }) {
   return (

@@ -1,11 +1,11 @@
-import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { eq } from "drizzle-orm";
+import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { loginSchema } from "@/lib/validations/auth";
 import type { UserRole } from "@/lib/types/user";
+import { loginSchema } from "@/lib/validations/auth";
 
 declare module "next-auth" {
   interface User {

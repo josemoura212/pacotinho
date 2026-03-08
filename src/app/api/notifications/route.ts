@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import {
-  listNotifications,
   countUnread,
+  listNotifications,
   markAllAsRead,
 } from "@/lib/services/notification-service";
 import type { ApiResponse } from "@/lib/types/api";

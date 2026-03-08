@@ -1,15 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { Bell, CheckCheck } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -69,9 +70,18 @@ export function NotificationBell() {
   }
 
   async function handleMarkAllRead() {
-    await fetch("/api/notifications", { method: "POST" });
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
-    setUnreadCount(0);
+    try {
+      const res = await fetch("/api/notifications", { method: "POST" });
+      const result = await res.json();
+      if (!result.success) {
+        toast.error("Erro ao marcar notificações como lidas");
+        return;
+      }
+      setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch {
+      toast.error("Erro ao marcar notificações como lidas");
+    }
   }
 
   return (
@@ -133,9 +143,7 @@ export function NotificationBell() {
                     <div
                       className={cn(
                         "rounded-md px-3 py-3 text-sm transition-colors",
-                        item.read
-                          ? "text-muted-foreground"
-                          : "bg-primary/5 font-medium",
+                        item.read ? "text-muted-foreground" : "bg-primary/5 font-medium",
                       )}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -144,9 +152,7 @@ export function NotificationBell() {
                           {timeAgo(item.createdAt)}
                         </span>
                       </div>
-                      <p className="mt-0.5 text-xs leading-relaxed">
-                        {item.body}
-                      </p>
+                      <p className="mt-0.5 text-xs leading-relaxed">{item.body}</p>
                     </div>
                   );
 

@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  KeyRound,
+  MoreVertical,
+  Pencil,
+  Search,
+  UserPlus,
+  UserX,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +26,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,20 +49,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  UserPlus,
-  Pencil,
-  UserX,
-  KeyRound,
-  MoreVertical,
-  Copy,
-  Check,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { toast } from "sonner";
-import type { UserWithoutPassword, UserRole } from "@/lib/types/user";
+import { Input } from "@/components/ui/input";
+import type { UserRole, UserWithoutPassword } from "@/lib/types/user";
 
 const roleLabels = {
   ADMIN: "Administrador",
@@ -77,7 +77,7 @@ export function UserList({ users }: UserListProps) {
   const [deleteTarget, setDeleteTarget] = useState<UserWithoutPassword | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
-  const [resetTarget, setResetTarget] = useState<string | null>(null);
+  const [, setResetTarget] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [search, setSearch] = useState("");
@@ -95,8 +95,7 @@ export function UserList({ users }: UserListProps) {
       const lower = search.toLowerCase();
       result = result.filter(
         (u) =>
-          u.name.toLowerCase().includes(lower) ||
-          u.email.toLowerCase().includes(lower),
+          u.name.toLowerCase().includes(lower) || u.email.toLowerCase().includes(lower),
       );
     }
 

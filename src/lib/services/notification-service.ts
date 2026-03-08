@@ -1,7 +1,6 @@
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { notifications } from "@/lib/db/schema";
-import { eq, and, desc } from "drizzle-orm";
-import { sql } from "drizzle-orm";
 
 export async function createNotification(
   userId: string,
@@ -43,11 +42,4 @@ export async function markAllAsRead(userId: string) {
     .update(notifications)
     .set({ read: true })
     .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
-}
-
-export async function markAsRead(id: string, userId: string) {
-  await db
-    .update(notifications)
-    .set({ read: true })
-    .where(and(eq(notifications.id, id), eq(notifications.userId, userId)));
 }

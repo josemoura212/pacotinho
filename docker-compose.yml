@@ -16,6 +16,27 @@ services:
       timeout: 3s
       retries: 5
 
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://pacotinho:pacotinho_dev@db:5432/pacotinho
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo '[1/2] Sincronizando schema...' &&
+        ./node_modules/.bin/drizzle-kit push --config=drizzle.config.ts --force &&
+        echo '[2/2] Rodando seed...' &&
+        ./node_modules/.bin/tsx src/lib/db/seed.ts &&
+        echo 'Init concluído!'
+      "
+    restart: "no"
+
   app:
     build:
       context: .
@@ -30,8 +51,8 @@ services:
     volumes:
       - uploads:/app/uploads
     depends_on:
-      db:
-        condition: service_healthy
+      init:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

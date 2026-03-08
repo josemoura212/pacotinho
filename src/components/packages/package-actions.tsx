@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { CheckCircle, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { toast } from "sonner";
-import { Truck, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Package } from "@/lib/types/package";
 import type { UserRole } from "@/lib/types/user";
 
@@ -17,7 +17,10 @@ export function PackageActions({ pkg, userRole }: { pkg: Package; userRole: User
     const res = await fetch(`/api/packages/${pkg.id}/deliver`, { method: "POST" });
     const result = await res.json();
     setIsLoading(false);
-    if (!result.success) { toast.error(result.error); return; }
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Entrega registrada!");
     router.refresh();
   }
@@ -27,12 +30,17 @@ export function PackageActions({ pkg, userRole }: { pkg: Package; userRole: User
     const res = await fetch(`/api/packages/${pkg.id}/confirm`, { method: "POST" });
     const result = await res.json();
     setIsLoading(false);
-    if (!result.success) { toast.error(result.error); return; }
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
     toast.success("Recebimento confirmado!");
     router.refresh();
   }
 
-  const canDeliver = pkg.status === "ENTREGA_PENDENTE" && (userRole === "PORTEIRO" || userRole === "ADMIN");
+  const canDeliver =
+    pkg.status === "ENTREGA_PENDENTE" &&
+    (userRole === "PORTEIRO" || userRole === "ADMIN");
   const canConfirm = pkg.status === "ENTREGA_CONCLUIDA" && !pkg.receivedAt;
 
   if (!canDeliver && !canConfirm) return null;

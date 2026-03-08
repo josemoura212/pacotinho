@@ -3,5 +3,12 @@ node_modules
 .git
 uploads
 .env
+.env.*
 *.md
 .devcontainer
+.vscode
+.claude
+.planning
+*.log
+coverage
+.eslintcache

@@ -1,6 +1,6 @@
+import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { packageAuditLogs, users } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
 import type { AuditAction } from "@/lib/types/package";
 
 export async function createAuditLog(

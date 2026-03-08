@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Camera, Expand, ImageUp, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { ResidentSelector } from "@/components/packages/resident-selector";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -14,9 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { ResidentSelector } from "@/components/packages/resident-selector";
-import { toast } from "sonner";
-import { Camera, ImageUp, X, Expand } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Resident {
   id: string;
@@ -75,20 +75,28 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
-    const result = await res.json();
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const result = await res.json();
 
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (photoPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(photoPreview);
+      }
+
+      setPhotoFilename(result.data.filename);
+      setPhotoPreview(URL.createObjectURL(file));
+      toast.success("Foto anexada!");
+    } catch {
+      toast.error("Erro ao enviar foto. Tente novamente.");
     }
-
-    setPhotoFilename(result.data.filename);
-    setPhotoPreview(URL.createObjectURL(file));
-    toast.success("Foto anexada!");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

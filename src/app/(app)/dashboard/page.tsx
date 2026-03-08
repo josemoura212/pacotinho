@@ -1,7 +1,6 @@
-import { auth } from "@/lib/auth/auth";
-import { redirect } from "next/navigation";
-import { getPackageCounts } from "@/lib/services/package-service";
+import { CheckCircle, ClipboardList, Package, Truck } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -9,7 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Package, ClipboardList, Truck, CheckCircle } from "lucide-react";
+import { auth } from "@/lib/auth/auth";
+import { getPackageCounts } from "@/lib/services/package-service";
 import type { UserRole } from "@/lib/types/user";
 
 export default async function DashboardPage() {

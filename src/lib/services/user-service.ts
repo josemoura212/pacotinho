@@ -1,8 +1,8 @@
+import { hash } from "bcryptjs";
 import { randomBytes } from "crypto";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { hash } from "bcryptjs";
 import type { UserWithoutPassword } from "@/lib/types/user";
 import type { CreateUserInput, UpdateUserInput } from "@/lib/validations/user";
 

@@ -1,13 +1,13 @@
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
+import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
 import { createUser } from "@/lib/services/user-service";
-import { createUserSchema } from "@/lib/validations/user";
-import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
+import { createUserSchema } from "@/lib/validations/user";
 
 export async function GET() {
   const session = await auth();
@@ -75,8 +75,7 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erro ao cadastrar morador";
+    const message = error instanceof Error ? error.message : "Erro ao cadastrar morador";
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
       { status: 400 },

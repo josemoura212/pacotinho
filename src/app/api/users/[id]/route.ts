@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getUserById, updateUser, deleteUser } from "@/lib/services/user-service";
-import { updateUserSchema } from "@/lib/validations/user";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { deleteUser, getUserById, updateUser } from "@/lib/services/user-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
+import { updateUserSchema } from "@/lib/validations/user";
 
 export async function GET(
   _request: Request,

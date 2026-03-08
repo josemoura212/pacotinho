@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth/auth";
 import { NextResponse } from "next/server";
-import { hasPermission, getRoutePermission } from "@/lib/auth/permissions";
+import { auth } from "@/lib/auth/auth";
+import { getRoutePermission, hasPermission } from "@/lib/auth/permissions";
 import type { UserRole } from "@/lib/types/user";
 
 const publicPaths = ["/login", "/api/auth"];

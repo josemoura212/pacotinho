@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth/auth";
-import { redirect, notFound } from "next/navigation";
-import { getUserById } from "@/lib/services/user-service";
+import { notFound, redirect } from "next/navigation";
 import { UserForm } from "@/components/users/user-form";
+import { auth } from "@/lib/auth/auth";
+import { getUserById } from "@/lib/services/user-service";
 
 export default async function EditarUsuarioPage({
   params,

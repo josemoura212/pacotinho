@@ -1,17 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PackageStatusBadge } from "./package-status-badge";
 import {
+  Calendar,
+  ClipboardEdit,
+  FileText,
   MapPin,
   Package as PackageIcon,
-  Calendar,
-  FileText,
-  ClipboardEdit,
 } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Package } from "@/lib/types/package";
+import { PackageStatusBadge } from "./package-status-badge";
 
 export function PackageCard({ pkg, subtitle }: { pkg: Package; subtitle?: string }) {
   const isPending = pkg.status === "REGISTRO_PENDENTE";

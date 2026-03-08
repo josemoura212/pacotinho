@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth/auth";
-import { redirect, notFound } from "next/navigation";
-import { getPackageById } from "@/lib/services/package-service";
+import { notFound, redirect } from "next/navigation";
 import { PackageForm } from "@/components/packages/package-form";
+import { auth } from "@/lib/auth/auth";
+import { getPackageById } from "@/lib/services/package-service";
 
 export default async function CompletarRegistroPage({
   params,

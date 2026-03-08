@@ -1,9 +1,10 @@
 "use client";
 
+import { Bell, BellOff, LogOut, Moon, Sun } from "lucide-react";
 import { signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { useAppSession } from "@/hooks/use-session";
+import { useEffect, useState } from "react";
+import { subscribeToPush } from "@/components/pwa/service-worker-register";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,8 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bell, BellOff, LogOut, Moon, Sun } from "lucide-react";
-import { subscribeToPush } from "@/components/pwa/service-worker-register";
+import { useAppSession } from "@/hooks/use-session";
 
 const roleLabels = {
   ADMIN: "Administrador",

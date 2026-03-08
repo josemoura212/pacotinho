@@ -1,11 +1,11 @@
 "use client";
 
+import { Package } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Package } from "lucide-react";
 import { useAppSession } from "@/hooks/use-session";
-import { getNavItemsForRole } from "./nav-items";
 import { cn } from "@/lib/utils";
+import { getNavItemsForRole } from "./nav-items";
 
 export function Sidebar() {
   const pathname = usePathname();

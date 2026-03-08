@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getPackageCounts } from "@/lib/services/package-service";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { getPackageCounts } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
 
 export async function GET() {
   const session = await auth();

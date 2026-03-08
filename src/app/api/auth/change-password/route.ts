@@ -1,12 +1,12 @@
+import { compare, hash } from "bcryptjs";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { z } from "zod/v4";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { compare, hash } from "bcryptjs";
-import { passwordSchema } from "@/lib/validations/auth";
-import { z } from "zod/v4";
 import type { ApiResponse } from "@/lib/types/api";
+import { passwordSchema } from "@/lib/validations/auth";
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Senha atual é obrigatória"),

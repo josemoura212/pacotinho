@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getPackageById, updatePackage } from "@/lib/services/package-service";
-import { updatePackageSchema } from "@/lib/validations/package";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { getPackageById, updatePackage } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
+import { updatePackageSchema } from "@/lib/validations/package";
 
 export async function GET(
   _request: Request,
@@ -79,8 +79,7 @@ export async function PATCH(
       data: pkg,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erro ao atualizar";
+    const message = error instanceof Error ? error.message : "Erro ao atualizar";
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
       { status: 400 },

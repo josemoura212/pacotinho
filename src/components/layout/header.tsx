@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Package } from "lucide-react";
-import { UserMenu } from "./user-menu";
-import { ThemeToggle } from "./theme-toggle";
+import Link from "next/link";
 import { NotificationBell } from "./notification-bell";
+import { ThemeToggle } from "./theme-toggle";
+import { UserMenu } from "./user-menu";
 
 export function Header() {
   return (

@@ -1,9 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useRef } from "react";
+import { Input } from "@/components/ui/input";
 
 export function PackageFilters() {
   const router = useRouter();

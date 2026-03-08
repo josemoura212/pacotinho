@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth/auth";
-import { redirect, notFound } from "next/navigation";
-import { getPackageById } from "@/lib/services/package-service";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PackageStatusBadge } from "@/components/packages/package-status-badge";
-import { PackageHistory } from "@/components/packages/package-history";
+import { Calendar, FileText, Hash, MapPin, User } from "lucide-react";
+import { notFound, redirect } from "next/navigation";
 import { PackageActions } from "@/components/packages/package-actions";
+import { PackageHistory } from "@/components/packages/package-history";
 import { PackagePhoto } from "@/components/packages/package-photo";
+import { PackageStatusBadge } from "@/components/packages/package-status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/lib/auth/auth";
+import { getPackageById } from "@/lib/services/package-service";
 import type { UserRole } from "@/lib/types/user";
-import { MapPin, User, Calendar, Hash, FileText } from "lucide-react";
 
 export default async function PackageDetailPage({
   params,

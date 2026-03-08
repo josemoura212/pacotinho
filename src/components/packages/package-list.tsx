@@ -1,8 +1,8 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { PackageCard } from "./package-card";
 import type { Package } from "@/lib/types/package";
+import { PackageCard } from "./package-card";
 
 export function PackageList({
   packages,

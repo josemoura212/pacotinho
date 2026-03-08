@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { uploadFile } from "@/lib/services/upload-service";
 import { hasPermission } from "@/lib/auth/permissions";
-import type { UserRole } from "@/lib/types/user";
+import { uploadFile } from "@/lib/services/upload-service";
 import type { ApiResponse } from "@/lib/types/api";
+import type { UserRole } from "@/lib/types/user";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -38,8 +38,7 @@ export async function POST(request: Request) {
       data: { filename: result.filename },
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Erro ao fazer upload";
+    const message = error instanceof Error ? error.message : "Erro ao fazer upload";
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
       { status: 400 },
