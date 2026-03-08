@@ -17,6 +17,7 @@ services:
       retries: 5
 
   init:
+    image: pacotinho
     build:
       context: .
       dockerfile: Dockerfile
@@ -39,9 +40,7 @@ services:
     restart: "no"
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: pacotinho
     restart: unless-stopped
     ports:
       - "3000:3000"
