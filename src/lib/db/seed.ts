@@ -1,8 +1,20 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { hash } from "bcryptjs";
+import { randomBytes } from "crypto";
 import { users } from "./schema";
 import { eq } from "drizzle-orm";
+
+function generatePassword(): string {
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
+  const bytes = randomBytes(16);
+  let password = "";
+  for (const byte of bytes) {
+    password += chars[byte % chars.length];
+  }
+  return password;
+}
 
 async function seed() {
   const pool = new Pool({
@@ -18,12 +30,13 @@ async function seed() {
     .limit(1);
 
   if (existing.length > 0) {
-    console.log("Admin já existe, pulando seed.");
+    console.log("[seed] Admin já existe, pulando seed.");
     await pool.end();
     return;
   }
 
-  const passwordHash = await hash("Admin@123", 12);
+  const password = generatePassword();
+  const passwordHash = await hash(password, 12);
 
   await db.insert(users).values({
     name: "Administrador",
@@ -34,11 +47,19 @@ async function seed() {
     mustChangePassword: true,
   });
 
-  console.log("Seed concluído: admin@pacotinho.com / Admin@123");
+  console.log("=========================================");
+  console.log("  ADMIN CRIADO COM SUCESSO");
+  console.log("-----------------------------------------");
+  console.log(`  Email: admin@pacotinho.com`);
+  console.log(`  Senha: ${password}`);
+  console.log("-----------------------------------------");
+  console.log("  Troca de senha obrigatória no 1o login");
+  console.log("=========================================");
+
   await pool.end();
 }
 
 seed().catch((err) => {
-  console.error("Erro no seed:", err);
+  console.error("[seed] Erro:", err);
   process.exit(1);
 });
