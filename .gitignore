@@ -43,9 +43,6 @@ yarn-error.log*
 # uploads
 uploads/
 
-# public assets (generated icons, etc.)
-/public
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
