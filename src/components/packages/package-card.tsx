@@ -11,6 +11,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Package } from "@/lib/types/package";
+import { formatDate } from "@/lib/utils";
 import { PackageStatusBadge } from "./package-status-badge";
 
 export function PackageCard({ pkg, subtitle }: { pkg: Package; subtitle?: string }) {
@@ -52,7 +53,7 @@ export function PackageCard({ pkg, subtitle }: { pkg: Package; subtitle?: string
               )}
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {new Date(pkg.createdAt).toLocaleDateString("pt-BR")}
+                {formatDate(pkg.createdAt)}
               </div>
             </>
           )}

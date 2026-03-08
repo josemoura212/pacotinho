@@ -3,6 +3,7 @@
 import { Clock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateTime } from "@/lib/utils";
 
 const actionLabels: Record<string, string> = {
   CRIACAO: "Cadastro",
@@ -61,7 +62,7 @@ export function PackageHistory({ packageId }: { packageId: string }) {
                 </p>
                 <p className="text-xs text-muted-foreground">por {log.userName}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(log.createdAt).toLocaleString("pt-BR")}
+                  {formatDateTime(log.createdAt)}
                 </p>
               </div>
             </div>

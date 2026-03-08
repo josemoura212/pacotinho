@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth/auth";
 import { getPackageById } from "@/lib/services/package-service";
 import type { UserRole } from "@/lib/types/user";
+import { formatDateTime } from "@/lib/utils";
 
 export default async function PackageDetailPage({
   params,
@@ -50,18 +51,18 @@ export default async function PackageDetailPage({
           </div>
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            Registrado em {new Date(pkg.createdAt).toLocaleString("pt-BR")}
+            Registrado em {formatDateTime(pkg.createdAt)}
           </div>
           {pkg.deliveredAt && (
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              Entregue em {new Date(pkg.deliveredAt).toLocaleString("pt-BR")}
+              Entregue em {formatDateTime(pkg.deliveredAt)}
             </div>
           )}
           {pkg.receivedAt && (
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              Recebimento confirmado em {new Date(pkg.receivedAt).toLocaleString("pt-BR")}
+              Recebimento confirmado em {formatDateTime(pkg.receivedAt)}
             </div>
           )}
           {pkg.notes && (

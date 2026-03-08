@@ -16,6 +16,7 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV TZ=America/Sao_Paulo
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
