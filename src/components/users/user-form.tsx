@@ -179,12 +179,18 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
                 name="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value as UserRole)}
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 disabled={isLoading}
               >
-                <option value="MORADOR">Morador</option>
-                <option value="PORTEIRO">Porteiro</option>
-                <option value="ADMIN">Administrador</option>
+                <option value="MORADOR" className="bg-background text-foreground">
+                  Morador
+                </option>
+                <option value="PORTEIRO" className="bg-background text-foreground">
+                  Porteiro
+                </option>
+                <option value="ADMIN" className="bg-background text-foreground">
+                  Administrador
+                </option>
               </select>
             </div>
 
