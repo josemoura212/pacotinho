@@ -35,11 +35,7 @@ export async function POST(
   }
 
   const role = session.user.role as UserRole;
-  if (
-    role === "MORADOR" &&
-    (pkg.apartment !== session.user.apartment ||
-      pkg.block !== session.user.block)
-  ) {
+  if (role === "MORADOR" && pkg.residentId !== session.user.id) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: "Sem permissão para esta encomenda" },
       { status: 403 },

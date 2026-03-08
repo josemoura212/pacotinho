@@ -7,7 +7,10 @@ export const createPackageSchema = z.object({
     .transform((v) => v.trim() || undefined)
     .optional(),
   residentId: z.uuid().optional(),
-  photoPath: z.string().max(500).optional(),
+  photoPath: z
+    .string()
+    .regex(/^[0-9a-f-]{36}\.(jpg|jpeg|png|webp)$/, "Formato de foto inválido")
+    .optional(),
   notes: z.string().max(1000).optional(),
 });
 
@@ -18,7 +21,10 @@ export const updatePackageSchema = z.object({
     .optional()
     .transform((v) => v?.trim() || undefined),
   residentId: z.uuid().optional(),
-  photoPath: z.string().max(500).optional(),
+  photoPath: z
+    .string()
+    .regex(/^[0-9a-f-]{36}\.(jpg|jpeg|png|webp)$/, "Formato de foto inválido")
+    .optional(),
   notes: z.string().max(1000).optional(),
 });
 
@@ -29,7 +35,10 @@ export const completeRegistrationSchema = z.object({
     .max(100)
     .transform((v) => v.trim()),
   residentId: z.uuid("Morador é obrigatório"),
-  photoPath: z.string().max(500).optional(),
+  photoPath: z
+    .string()
+    .regex(/^[0-9a-f-]{36}\.(jpg|jpeg|png|webp)$/, "Formato de foto inválido")
+    .optional(),
   notes: z.string().max(1000).optional(),
 });
 

@@ -5,8 +5,8 @@ echo "========================================="
 echo "  Pacotinho - Inicializando container"
 echo "========================================="
 
-echo "[1/3] Rodando migrations (drizzle-kit push)..."
-./node_modules/.bin/drizzle-kit push --config=drizzle.config.ts --force
+echo "[1/3] Rodando migrations..."
+./node_modules/.bin/drizzle-kit migrate --config=drizzle.config.ts
 echo "[1/3] Migrations concluídas!"
 
 echo "[2/3] Rodando seed..."

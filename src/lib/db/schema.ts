@@ -40,8 +40,8 @@ export const users = pgTable(
     block: varchar("block", { length: 20 }),
     mustChangePassword: boolean("must_change_password").default(true).notNull(),
     active: boolean("active").default(true).notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [uniqueIndex("users_email_idx").on(table.email)],
 );
@@ -63,16 +63,20 @@ export const packages = pgTable(
       .notNull(),
     deliveredById: uuid("delivered_by_id").references(() => users.id),
     receivedById: uuid("received_by_id").references(() => users.id),
-    receivedAt: timestamp("received_at"),
-    deliveredAt: timestamp("delivered_at"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("packages_status_idx").on(table.status),
     index("packages_resident_id_idx").on(table.residentId),
     index("packages_tracking_code_idx").on(table.trackingCode),
     index("packages_created_at_idx").on(table.createdAt),
+    index("packages_registered_by_id_idx").on(table.registeredById),
+    index("packages_delivered_by_id_idx").on(table.deliveredById),
+    index("packages_received_by_id_idx").on(table.receivedById),
+    index("packages_resident_status_idx").on(table.residentId, table.status),
   ],
 );
 
@@ -86,11 +90,30 @@ export const pushSubscriptions = pgTable(
     endpoint: text("endpoint").notNull(),
     p256dh: text("p256dh").notNull(),
     auth: text("auth").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     index("push_subscriptions_user_id_idx").on(table.userId),
     uniqueIndex("push_subscriptions_endpoint_idx").on(table.endpoint),
+  ],
+);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    body: text("body").notNull(),
+    url: varchar("url", { length: 500 }),
+    read: boolean("read").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("notifications_user_id_idx").on(table.userId),
+    index("notifications_user_read_idx").on(table.userId, table.read),
   ],
 );
 
@@ -106,7 +129,10 @@ export const packageAuditLogs = pgTable(
       .notNull(),
     action: auditActionEnum("action").notNull(),
     changes: jsonb("changes"),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index("audit_logs_package_id_idx").on(table.packageId)],
+  (table) => [
+    index("audit_logs_package_id_idx").on(table.packageId),
+    index("audit_logs_user_id_idx").on(table.userId),
+  ],
 );

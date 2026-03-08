@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth/auth";
 import { redirect } from "next/navigation";
 import { getPackageCounts, listPackages } from "@/lib/services/package-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PackageStatusBadge } from "@/components/packages/package-status-badge";
+import { PackageCard } from "@/components/packages/package-card";
 import { BarChart3, AlertTriangle, Truck, CheckCircle } from "lucide-react";
 
 export default async function RelatoriosPage() {
@@ -60,24 +60,18 @@ export default async function RelatoriosPage() {
           </h2>
           <div className="grid gap-2">
             {incomplete.map((pkg) => (
-              <Card key={pkg.id}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <div>
-                    <p className="font-medium">{pkg.recipientName || "Sem nome"}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {[
-                        !pkg.recipientName && "Nome ausente",
-                        !pkg.apartment && "Apto ausente",
-                        !pkg.block && "Bloco ausente",
-                        !pkg.photoPath && "Foto ausente",
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </p>
-                  </div>
-                  <PackageStatusBadge status={pkg.status} />
-                </CardContent>
-              </Card>
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                subtitle={[
+                  !pkg.recipientName && "Nome ausente",
+                  !pkg.apartment && "Apto ausente",
+                  !pkg.block && "Bloco ausente",
+                  !pkg.photoPath && "Foto ausente",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
             ))}
           </div>
         </div>

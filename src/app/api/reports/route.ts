@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
-import { getPackageCounts, listPackages } from "@/lib/services/package-service";
+import { getPackageCounts } from "@/lib/services/package-service";
 import { hasPermission } from "@/lib/auth/permissions";
 import type { UserRole } from "@/lib/types/user";
 import type { ApiResponse } from "@/lib/types/api";
@@ -22,17 +22,9 @@ export async function GET() {
   }
 
   const counts = await getPackageCounts("ADMIN");
-  const pendingRegistrations = await listPackages({ status: "REGISTRO_PENDENTE" }, "ADMIN");
-  const pendingDeliveries = await listPackages({ status: "ENTREGA_PENDENTE" }, "ADMIN");
-  const completed = await listPackages({ status: "ENTREGA_CONCLUIDA" }, "ADMIN");
 
-  return NextResponse.json<ApiResponse<unknown>>({
+  return NextResponse.json<ApiResponse<typeof counts>>({
     success: true,
-    data: {
-      counts,
-      pendingRegistrations: pendingRegistrations.length,
-      pendingDeliveries: pendingDeliveries.length,
-      completed: completed.length,
-    },
+    data: counts,
   });
 }

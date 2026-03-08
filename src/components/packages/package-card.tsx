@@ -4,10 +4,16 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PackageStatusBadge } from "./package-status-badge";
-import { MapPin, Package as PackageIcon, Calendar, FileText, ClipboardEdit } from "lucide-react";
+import {
+  MapPin,
+  Package as PackageIcon,
+  Calendar,
+  FileText,
+  ClipboardEdit,
+} from "lucide-react";
 import type { Package } from "@/lib/types/package";
 
-export function PackageCard({ pkg }: { pkg: Package }) {
+export function PackageCard({ pkg, subtitle }: { pkg: Package; subtitle?: string }) {
   const isPending = pkg.status === "REGISTRO_PENDENTE";
 
   return (
@@ -22,28 +28,34 @@ export function PackageCard({ pkg }: { pkg: Package }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-1 text-sm text-muted-foreground">
-          {pkg.apartment && (
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              Apto {pkg.apartment} - Bloco {pkg.block}
-            </div>
+          {subtitle ? (
+            <p>{subtitle}</p>
+          ) : (
+            <>
+              {pkg.apartment && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  Apto {pkg.apartment} - Bloco {pkg.block}
+                </div>
+              )}
+              {pkg.trackingCode && (
+                <div className="flex items-center gap-1">
+                  <PackageIcon className="h-3 w-3" />
+                  Rastreio: {pkg.trackingCode}
+                </div>
+              )}
+              {pkg.notes && (
+                <div className="flex items-center gap-1">
+                  <FileText className="h-3 w-3" />
+                  {pkg.notes}
+                </div>
+              )}
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {new Date(pkg.createdAt).toLocaleDateString("pt-BR")}
+              </div>
+            </>
           )}
-          {pkg.trackingCode && (
-            <div className="flex items-center gap-1">
-              <PackageIcon className="h-3 w-3" />
-              Rastreio: {pkg.trackingCode}
-            </div>
-          )}
-          {pkg.notes && (
-            <div className="flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              {pkg.notes}
-            </div>
-          )}
-          <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            {new Date(pkg.createdAt).toLocaleDateString("pt-BR")}
-          </div>
           {isPending && (
             <Button variant="outline" size="sm" className="mt-2 w-full" asChild>
               <span>

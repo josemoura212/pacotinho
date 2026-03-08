@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ResidentSelector } from "@/components/packages/resident-selector";
 import { toast } from "sonner";
-import { Camera } from "lucide-react";
+import { Camera, ImageUp, X, Expand } from "lucide-react";
 
 interface Resident {
   id: string;
@@ -45,6 +46,9 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     defaultValues?.photoPath ? `/api/images/${defaultValues.photoPath}` : null,
   );
+
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const isCompleting = !!packageId;
 
@@ -217,7 +221,7 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
               <div className="flex items-center gap-4">
                 <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground hover:bg-accent">
                   <Camera className="h-4 w-4" />
-                  {photoFilename ? "Trocar foto" : "Tirar foto / Upload"}
+                  Tirar foto
                   <input
                     type="file"
                     accept="image/*"
@@ -226,14 +230,59 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
                     onChange={handlePhotoUpload}
                   />
                 </label>
-                {photoPreview && (
+                <button
+                  type="button"
+                  className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground hover:bg-accent"
+                  onClick={() => galleryInputRef.current?.click()}
+                >
+                  <ImageUp className="h-4 w-4" />
+                  Escolher arquivo
+                </button>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+              </div>
+              {photoPreview && (
+                <div className="relative inline-block">
                   <img
                     src={photoPreview}
                     alt="Preview"
-                    className="h-16 w-16 rounded object-cover"
+                    className="h-24 w-24 cursor-pointer rounded object-cover transition-opacity hover:opacity-80"
+                    onClick={() => setPhotoDialogOpen(true)}
                   />
-                )}
-              </div>
+                  <button
+                    type="button"
+                    className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm hover:bg-destructive/90"
+                    onClick={() => {
+                      setPhotoFilename(null);
+                      setPhotoPreview(null);
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <button
+                    type="button"
+                    className="absolute -bottom-1 -right-1 rounded-full bg-background p-1 shadow-sm border hover:bg-accent"
+                    onClick={() => setPhotoDialogOpen(true)}
+                  >
+                    <Expand className="h-3 w-3" />
+                  </button>
+                  <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
+                    <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:max-w-3xl">
+                      <DialogTitle className="sr-only">Foto da encomenda</DialogTitle>
+                      <img
+                        src={photoPreview}
+                        alt="Foto da encomenda"
+                        className="max-h-[85vh] w-full rounded object-contain"
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

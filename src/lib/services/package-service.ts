@@ -3,6 +3,7 @@ import { packages, users } from "@/lib/db/schema";
 import { eq, and, desc, or, ilike, sql } from "drizzle-orm";
 import { createAuditLog } from "./audit-service";
 import { sendPushToUser } from "./push-service";
+import { createNotification } from "./notification-service";
 import type {
   CreatePackageInput,
   UpdatePackageInput,
@@ -13,34 +14,33 @@ import type { UserRole } from "@/lib/types/user";
 
 export async function createPackage(data: CreatePackageInput, registeredById: string) {
   const isComplete = !!data.trackingCode && !!data.residentId;
-
-  let recipientName: string | null = null;
-  let apartment: string | null = null;
-  let block: string | null = null;
-
-  if (data.residentId) {
-    const [resident] = await db
-      .select({
-        name: users.name,
-        apartment: users.apartment,
-        block: users.block,
-      })
-      .from(users)
-      .where(eq(users.id, data.residentId))
-      .limit(1);
-
-    if (!resident) {
-      throw new Error("Morador não encontrado");
-    }
-
-    recipientName = resident.name;
-    apartment = resident.apartment;
-    block = resident.block;
-  }
-
   const status = isComplete ? "ENTREGA_PENDENTE" : "REGISTRO_PENDENTE";
 
   const pkg = await db.transaction(async (tx) => {
+    let recipientName: string | null = null;
+    let apartment: string | null = null;
+    let block: string | null = null;
+
+    if (data.residentId) {
+      const [resident] = await tx
+        .select({
+          name: users.name,
+          apartment: users.apartment,
+          block: users.block,
+        })
+        .from(users)
+        .where(eq(users.id, data.residentId))
+        .limit(1);
+
+      if (!resident) {
+        throw new Error("Morador não encontrado");
+      }
+
+      recipientName = resident.name;
+      apartment = resident.apartment;
+      block = resident.block;
+    }
+
     const [created] = await tx
       .insert(packages)
       .values({
@@ -76,11 +76,13 @@ export async function createPackage(data: CreatePackageInput, registeredById: st
   });
 
   if (isComplete && data.residentId) {
-    sendPushToUser(data.residentId, {
+    const payload = {
       title: "Nova encomenda!",
-      body: `${recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
+      body: `${pkg.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
       url: `/encomendas/${pkg.id}`,
-    }).catch(() => {});
+    };
+    sendPushToUser(data.residentId, payload).catch(() => {});
+    createNotification(data.residentId, payload).catch(() => {});
   }
 
   return pkg;
@@ -91,31 +93,39 @@ export async function completeRegistration(
   data: CompleteRegistrationInput,
   userId: string,
 ) {
-  const [existing] = await db.select().from(packages).where(eq(packages.id, id)).limit(1);
-
-  if (!existing) {
-    throw new Error("Encomenda não encontrada");
-  }
-
-  if (existing.status !== "REGISTRO_PENDENTE") {
-    throw new Error("Encomenda já foi completada");
-  }
-
-  const [resident] = await db
-    .select({
-      name: users.name,
-      apartment: users.apartment,
-      block: users.block,
-    })
-    .from(users)
-    .where(eq(users.id, data.residentId))
-    .limit(1);
-
-  if (!resident) {
-    throw new Error("Morador não encontrado");
-  }
-
   const updated = await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({
+        status: packages.status,
+        photoPath: packages.photoPath,
+        notes: packages.notes,
+      })
+      .from(packages)
+      .where(eq(packages.id, id))
+      .limit(1);
+
+    if (!existing) {
+      throw new Error("Encomenda não encontrada");
+    }
+
+    if (existing.status !== "REGISTRO_PENDENTE") {
+      throw new Error("Encomenda já foi completada");
+    }
+
+    const [resident] = await tx
+      .select({
+        name: users.name,
+        apartment: users.apartment,
+        block: users.block,
+      })
+      .from(users)
+      .where(eq(users.id, data.residentId))
+      .limit(1);
+
+    if (!resident) {
+      throw new Error("Morador não encontrado");
+    }
+
     const [result] = await tx
       .update(packages)
       .set({
@@ -149,11 +159,13 @@ export async function completeRegistration(
     return result;
   });
 
-  sendPushToUser(data.residentId, {
+  const completePayload = {
     title: "Nova encomenda!",
-    body: `${resident.name}, você tem uma nova encomenda (${data.trackingCode})`,
+    body: `${updated.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
     url: `/encomendas/${updated.id}`,
-  }).catch(() => {});
+  };
+  sendPushToUser(data.residentId, completePayload).catch(() => {});
+  createNotification(data.residentId, completePayload).catch(() => {});
 
   return updated;
 }
@@ -163,40 +175,44 @@ export async function updatePackage(
   data: UpdatePackageInput,
   userId: string,
 ) {
-  const [existing] = await db.select().from(packages).where(eq(packages.id, id)).limit(1);
-
-  if (!existing) {
-    throw new Error("Encomenda não encontrada");
-  }
-
-  const updateData: Record<string, unknown> = { updatedAt: new Date() };
-
-  if (data.trackingCode !== undefined)
-    updateData.trackingCode = data.trackingCode ?? null;
-  if (data.photoPath !== undefined) updateData.photoPath = data.photoPath ?? null;
-  if (data.notes !== undefined) updateData.notes = data.notes ?? null;
-
-  if (data.residentId !== undefined) {
-    updateData.residentId = data.residentId;
-    const [resident] = await db
-      .select({
-        name: users.name,
-        apartment: users.apartment,
-        block: users.block,
-      })
-      .from(users)
-      .where(eq(users.id, data.residentId))
+  const updated = await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ id: packages.id })
+      .from(packages)
+      .where(eq(packages.id, id))
       .limit(1);
 
-    if (resident) {
-      updateData.recipientName = resident.name;
-      updateData.apartment = resident.apartment;
-      updateData.block = resident.block;
+    if (!existing) {
+      throw new Error("Encomenda não encontrada");
     }
-  }
 
-  return db.transaction(async (tx) => {
-    const [updated] = await tx
+    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+
+    if (data.trackingCode !== undefined)
+      updateData.trackingCode = data.trackingCode ?? null;
+    if (data.photoPath !== undefined) updateData.photoPath = data.photoPath ?? null;
+    if (data.notes !== undefined) updateData.notes = data.notes ?? null;
+
+    if (data.residentId !== undefined) {
+      updateData.residentId = data.residentId;
+      const [resident] = await tx
+        .select({
+          name: users.name,
+          apartment: users.apartment,
+          block: users.block,
+        })
+        .from(users)
+        .where(eq(users.id, data.residentId))
+        .limit(1);
+
+      if (resident) {
+        updateData.recipientName = resident.name;
+        updateData.apartment = resident.apartment;
+        updateData.block = resident.block;
+      }
+    }
+
+    const [result] = await tx
       .update(packages)
       .set(updateData)
       .where(eq(packages.id, id))
@@ -212,23 +228,49 @@ export async function updatePackage(
       tx,
     );
 
-    return updated;
+    return result;
   });
+
+  if (updated.residentId) {
+    const updatePayload = {
+      title: "Encomenda atualizada",
+      body: `${updated.recipientName}, sua encomenda foi atualizada`,
+      url: `/encomendas/${id}`,
+    };
+    sendPushToUser(updated.residentId, updatePayload).catch(() => {});
+    createNotification(updated.residentId, updatePayload).catch(() => {});
+  }
+
+  return updated;
 }
 
 export async function deliverPackage(id: string, deliveredById: string) {
-  const [existing] = await db.select().from(packages).where(eq(packages.id, id)).limit(1);
+  let residentId: string | null = null;
+  let recipientName: string | null = null;
 
-  if (!existing) {
-    throw new Error("Encomenda não encontrada");
-  }
+  const updated = await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({
+        status: packages.status,
+        residentId: packages.residentId,
+        recipientName: packages.recipientName,
+      })
+      .from(packages)
+      .where(eq(packages.id, id))
+      .limit(1);
 
-  if (existing.status !== "ENTREGA_PENDENTE") {
-    throw new Error("Encomenda não está com entrega pendente");
-  }
+    if (!existing) {
+      throw new Error("Encomenda não encontrada");
+    }
 
-  return db.transaction(async (tx) => {
-    const [updated] = await tx
+    if (existing.status !== "ENTREGA_PENDENTE") {
+      throw new Error("Encomenda não está com entrega pendente");
+    }
+
+    residentId = existing.residentId;
+    recipientName = existing.recipientName;
+
+    const [result] = await tx
       .update(packages)
       .set({
         status: "ENTREGA_CONCLUIDA",
@@ -249,23 +291,49 @@ export async function deliverPackage(id: string, deliveredById: string) {
       tx,
     );
 
-    return updated;
+    return result;
   });
+
+  if (residentId) {
+    const deliverPayload = {
+      title: "Encomenda entregue!",
+      body: `${recipientName}, sua encomenda foi entregue. Confirme o recebimento.`,
+      url: `/encomendas/${id}`,
+    };
+    sendPushToUser(residentId, deliverPayload).catch(() => {});
+    createNotification(residentId, deliverPayload).catch(() => {});
+  }
+
+  return updated;
 }
 
 export async function confirmReceipt(id: string, receivedById: string) {
-  const [existing] = await db.select().from(packages).where(eq(packages.id, id)).limit(1);
+  let residentId: string | null = null;
+  let recipientName: string | null = null;
 
-  if (!existing) {
-    throw new Error("Encomenda não encontrada");
-  }
+  const updated = await db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({
+        status: packages.status,
+        residentId: packages.residentId,
+        recipientName: packages.recipientName,
+      })
+      .from(packages)
+      .where(eq(packages.id, id))
+      .limit(1);
 
-  if (existing.status !== "ENTREGA_CONCLUIDA") {
-    throw new Error("Encomenda não está com entrega concluída");
-  }
+    if (!existing) {
+      throw new Error("Encomenda não encontrada");
+    }
 
-  return db.transaction(async (tx) => {
-    const [updated] = await tx
+    if (existing.status !== "ENTREGA_CONCLUIDA") {
+      throw new Error("Encomenda não está com entrega concluída");
+    }
+
+    residentId = existing.residentId;
+    recipientName = existing.recipientName;
+
+    const [result] = await tx
       .update(packages)
       .set({
         receivedById,
@@ -285,8 +353,20 @@ export async function confirmReceipt(id: string, receivedById: string) {
       tx,
     );
 
-    return updated;
+    return result;
   });
+
+  if (residentId) {
+    const confirmPayload = {
+      title: "Recebimento confirmado",
+      body: `${recipientName}, o recebimento da sua encomenda foi confirmado`,
+      url: `/encomendas/${id}`,
+    };
+    sendPushToUser(residentId, confirmPayload).catch(() => {});
+    createNotification(residentId, confirmPayload).catch(() => {});
+  }
+
+  return updated;
 }
 
 export async function getPackageById(id: string) {
@@ -327,7 +407,12 @@ export async function listPackages(
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
-  return db.select().from(packages).where(where).orderBy(desc(packages.createdAt));
+  return db
+    .select()
+    .from(packages)
+    .where(where)
+    .orderBy(desc(packages.createdAt))
+    .limit(500);
 }
 
 export async function getPackageCounts(userRole: UserRole, userId?: string) {
