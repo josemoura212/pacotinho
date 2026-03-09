@@ -1,5 +1,6 @@
 import { hash } from "bcryptjs";
 import { randomBytes } from "crypto";
+import type { InferInsertModel } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -55,8 +56,20 @@ function generatePassword(): string {
   return parts.join("");
 }
 
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error as { code: string }).code === "23505"
+  );
+}
+
 export async function listUsers(): Promise<UserWithoutPassword[]> {
-  return db.select(userColumns).from(users).orderBy(users.name);
+  return db
+    .select(userColumns)
+    .from(users)
+    .where(eq(users.active, true))
+    .orderBy(users.name);
 }
 
 export async function getUserById(id: string): Promise<UserWithoutPassword | null> {
@@ -82,45 +95,40 @@ export async function getUserByEmail(email: string): Promise<UserWithoutPassword
 export async function createUser(
   data: CreateUserInput,
 ): Promise<UserWithoutPassword & { generatedPassword?: string }> {
-  const existing = await getUserByEmail(data.email);
-  if (existing) {
-    throw new Error("E-mail já cadastrado");
-  }
-
   const rawPassword = data.password || generatePassword();
   const passwordHash = await hash(rawPassword, 12);
 
-  const [user] = await db
-    .insert(users)
-    .values({
-      name: data.name,
-      email: data.email,
-      passwordHash,
-      role: data.role,
-      phone: data.phone ?? null,
-      apartment: data.apartment ?? null,
-      block: data.block ?? null,
-    })
-    .returning(userColumns);
+  try {
+    const [user] = await db
+      .insert(users)
+      .values({
+        name: data.name,
+        email: data.email,
+        passwordHash,
+        role: data.role,
+        phone: data.phone ?? null,
+        apartment: data.apartment ?? null,
+        block: data.block ?? null,
+      })
+      .returning(userColumns);
 
-  return {
-    ...user,
-    generatedPassword: data.password ? undefined : rawPassword,
-  };
+    return {
+      ...user,
+      generatedPassword: data.password ? undefined : rawPassword,
+    };
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new Error("E-mail já cadastrado");
+    }
+    throw error;
+  }
 }
 
 export async function updateUser(
   id: string,
   data: UpdateUserInput,
 ): Promise<UserWithoutPassword> {
-  if (data.email) {
-    const existing = await getUserByEmail(data.email);
-    if (existing && existing.id !== id) {
-      throw new Error("E-mail já cadastrado");
-    }
-  }
-
-  const updateData: Record<string, unknown> = {
+  const updateData: Partial<InferInsertModel<typeof users>> = {
     updatedAt: new Date(),
   };
 
@@ -136,17 +144,24 @@ export async function updateUser(
     updateData.passwordHash = await hash(data.password, 12);
   }
 
-  const [user] = await db
-    .update(users)
-    .set(updateData)
-    .where(eq(users.id, id))
-    .returning(userColumns);
+  try {
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, id))
+      .returning(userColumns);
 
-  if (!user) {
-    throw new Error("Usuário não encontrado");
+    if (!user) {
+      throw new Error("Usuário não encontrado");
+    }
+
+    return user;
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new Error("E-mail já cadastrado");
+    }
+    throw error;
   }
-
-  return user;
 }
 
 export async function deleteUser(id: string): Promise<void> {

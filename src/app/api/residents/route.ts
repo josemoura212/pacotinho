@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { hasPermission } from "@/lib/auth/permissions";
@@ -33,7 +33,7 @@ export async function GET() {
       block: users.block,
     })
     .from(users)
-    .where(eq(users.role, "MORADOR"))
+    .where(and(eq(users.role, "MORADOR"), eq(users.active, true)))
     .orderBy(users.name);
 
   return NextResponse.json<ApiResponse<typeof residents>>({
@@ -58,8 +58,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json();
-  const parsed = createUserSchema.safeParse({ ...body, role: "MORADOR" });
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "Corpo da requisição inválido" },
+      { status: 400 },
+    );
+  }
+  const parsed = createUserSchema.safeParse({
+    ...(body as Record<string, unknown>),
+    role: "MORADOR",
+  });
 
   if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
