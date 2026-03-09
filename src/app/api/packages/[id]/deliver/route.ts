@@ -41,9 +41,10 @@ export async function POST(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao registrar entrega";
+    const status = message.includes("não encontrad") ? 404 : 400;
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
-      { status: 400 },
+      { status },
     );
   }
 }

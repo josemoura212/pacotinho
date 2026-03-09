@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod/v4";
 import { auth } from "@/lib/auth/auth";
 import { hasPermission } from "@/lib/auth/permissions";
 import { createPackage, listPackages } from "@/lib/services/package-service";
@@ -6,6 +7,12 @@ import type { ApiResponse } from "@/lib/types/api";
 import type { PackageStatus } from "@/lib/types/package";
 import type { UserRole } from "@/lib/types/user";
 import { createPackageSchema } from "@/lib/validations/package";
+
+const statusSchema = z.enum([
+  "REGISTRO_PENDENTE",
+  "ENTREGA_PENDENTE",
+  "ENTREGA_CONCLUIDA",
+]);
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -17,13 +24,17 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = request.nextUrl;
-  const status = searchParams.get("status") as PackageStatus | null;
+  const rawStatus = searchParams.get("status");
+  const parsedStatus = rawStatus ? statusSchema.safeParse(rawStatus) : null;
+  const status: PackageStatus | undefined = parsedStatus?.success
+    ? parsedStatus.data
+    : undefined;
   const search = searchParams.get("search");
 
   const role = session.user.role as UserRole;
   const pkgs = await listPackages(
     {
-      status: status ?? undefined,
+      status,
       search: search ?? undefined,
     },
     role,
@@ -52,7 +63,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "Corpo da requisição inválido" },
+      { status: 400 },
+    );
+  }
   const parsed = createPackageSchema.safeParse(body);
 
   if (!parsed.success) {

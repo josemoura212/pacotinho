@@ -33,7 +33,15 @@ export async function POST(
       { status: 400 },
     );
   }
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "Corpo da requisição inválido" },
+      { status: 400 },
+    );
+  }
   const parsed = completeRegistrationSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -51,9 +59,10 @@ export async function POST(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erro ao completar registro";
+    const status = message.includes("não encontrad") ? 404 : 400;
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: message },
-      { status: 400 },
+      { status },
     );
   }
 }
