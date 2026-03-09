@@ -4,6 +4,8 @@ import { PackageActions } from "@/components/packages/package-actions";
 import { PackageHistory } from "@/components/packages/package-history";
 import { PackagePhoto } from "@/components/packages/package-photo";
 import { PackageStatusBadge } from "@/components/packages/package-status-badge";
+import { RealtimeRefresh } from "@/components/packages/realtime-refresh";
+import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth/auth";
 import { getPackageById } from "@/lib/services/package-service";
@@ -29,6 +31,8 @@ export default async function PackageDetailPage({
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
+      <RealtimeRefresh packageId={pkg.id} />
+      <BackButton fallbackHref="/encomendas/entregas-pendentes" />
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Detalhe da Encomenda</h1>
         <PackageStatusBadge status={pkg.status} />

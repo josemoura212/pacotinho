@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ResidentSelector } from "@/components/packages/resident-selector";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -48,7 +58,9 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
   );
 
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const isCompleting = !!packageId;
 
@@ -176,6 +188,27 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
     router.refresh();
   }
 
+  function hasFormData() {
+    if (photoFilename && photoFilename !== defaultValues?.photoPath) return true;
+    if (selectedResident && selectedResident.id !== defaultValues?.residentId)
+      return true;
+    if (!formRef.current) return false;
+    const fd = new FormData(formRef.current);
+    const trackingCode = (fd.get("trackingCode") as string)?.trim();
+    const notes = (fd.get("notes") as string)?.trim();
+    if (trackingCode && trackingCode !== (defaultValues?.trackingCode ?? "")) return true;
+    if (notes && notes !== (defaultValues?.notes ?? "")) return true;
+    return false;
+  }
+
+  function handleCancel() {
+    if (hasFormData()) {
+      setCancelDialogOpen(true);
+    } else {
+      router.back();
+    }
+  }
+
   return (
     <div className="mx-auto max-w-lg">
       <Card>
@@ -188,7 +221,7 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="trackingCode">
                 Código de rastreio
@@ -305,16 +338,43 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading
-                ? "Salvando..."
-                : isCompleting
-                  ? "Completar Registro"
-                  : "Cadastrar Encomenda"}
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isLoading} className="flex-1">
+                {isLoading
+                  ? "Salvando..."
+                  : isCompleting
+                    ? "Completar Registro"
+                    : "Cadastrar Encomenda"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
+              >
+                Cancelar
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
+
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar alterações?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem dados preenchidos que serão perdidos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={() => router.back()}>
+              Descartar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
