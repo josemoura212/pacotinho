@@ -11,17 +11,35 @@ function optional(name: string, fallback: string): string {
 }
 
 export const env = {
-  DATABASE_URL: required("DATABASE_URL"),
-  AUTH_SECRET: required("AUTH_SECRET"),
-  AUTH_URL: optional("AUTH_URL", "http://localhost:3000"),
-  UPLOAD_DIR: optional("UPLOAD_DIR", "./uploads"),
+  get DATABASE_URL() {
+    return required("DATABASE_URL");
+  },
+  get AUTH_SECRET() {
+    return required("AUTH_SECRET");
+  },
+  get AUTH_URL() {
+    return optional("AUTH_URL", "http://localhost:3000");
+  },
+  get UPLOAD_DIR() {
+    return optional("UPLOAD_DIR", "./uploads");
+  },
 
-  VAPID_PUBLIC_KEY: optional("VAPID_PUBLIC_KEY", ""),
-  VAPID_PRIVATE_KEY: optional("VAPID_PRIVATE_KEY", ""),
-  VAPID_EMAIL: optional("VAPID_EMAIL", "mailto:admin@pacotinho.com"),
+  get VAPID_PUBLIC_KEY() {
+    return optional("VAPID_PUBLIC_KEY", "");
+  },
+  get VAPID_PRIVATE_KEY() {
+    return optional("VAPID_PRIVATE_KEY", "");
+  },
+  get VAPID_EMAIL() {
+    return optional("VAPID_EMAIL", "mailto:admin@pacotinho.com");
+  },
 
-  PORT: optional("PORT", "3000"),
-  HOSTNAME: optional("HOSTNAME", "0.0.0.0"),
+  get PORT() {
+    return optional("PORT", "3000");
+  },
+  get HOSTNAME() {
+    return optional("HOSTNAME", "0.0.0.0");
+  },
 
   get isSecure() {
     return this.AUTH_URL.startsWith("https://");
@@ -30,4 +48,4 @@ export const env = {
   get cookieName() {
     return this.isSecure ? "__Secure-authjs.session-token" : "authjs.session-token";
   },
-} as const;
+};
