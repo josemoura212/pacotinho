@@ -11,7 +11,11 @@ export default async function RelatoriosPage() {
   if (session.user.role !== "ADMIN") redirect("/dashboard");
 
   const counts = await getPackageCounts("ADMIN");
-  const incomplete = await listPackages({ status: "REGISTRO_PENDENTE" }, "ADMIN");
+  const incompleteResult = await listPackages(
+    { status: "REGISTRO_PENDENTE", limit: 100 },
+    "ADMIN",
+  );
+  const incomplete = incompleteResult.items;
 
   return (
     <div className="space-y-6">

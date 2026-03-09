@@ -352,9 +352,11 @@ export async function getPackageById(id: string) {
 interface ListFilters {
   status?: PackageStatus;
   search?: string;
+  page?: number;
+  limit?: number;
 }
 
-export async function listPackages(
+function buildPackageConditions(
   filters: ListFilters,
   userRole: UserRole,
   userId?: string,
@@ -379,14 +381,39 @@ export async function listPackages(
     );
   }
 
-  const where = conditions.length > 0 ? and(...conditions) : undefined;
+  return conditions.length > 0 ? and(...conditions) : undefined;
+}
 
-  return db
-    .select()
-    .from(packages)
-    .where(where)
-    .orderBy(desc(packages.createdAt))
-    .limit(500);
+export async function listPackages(
+  filters: ListFilters,
+  userRole: UserRole,
+  userId?: string,
+) {
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = Math.min(100, Math.max(1, filters.limit ?? 20));
+  const offset = (page - 1) * limit;
+  const where = buildPackageConditions(filters, userRole, userId);
+
+  const [items, countResult] = await Promise.all([
+    db
+      .select()
+      .from(packages)
+      .where(where)
+      .orderBy(desc(packages.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db.select({ count: sql<number>`count(*)::int` }).from(packages).where(where),
+  ]);
+
+  const total = countResult[0]?.count ?? 0;
+
+  return {
+    items,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
 }
 
 export async function getPackageCounts(userRole: UserRole, userId?: string) {

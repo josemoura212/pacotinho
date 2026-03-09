@@ -10,14 +10,18 @@ import type { UserRole } from "@/lib/types/user";
 export default async function EntregasPendentesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string }>;
+  searchParams: Promise<{ search?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session) redirect("/login");
 
   const params = await searchParams;
-  const pkgs = await listPackages(
-    { status: "ENTREGA_PENDENTE", search: params.search },
+  const result = await listPackages(
+    {
+      status: "ENTREGA_PENDENTE",
+      search: params.search,
+      page: Number(params.page) || 1,
+    },
     session.user.role as UserRole,
     session.user.id,
   );
@@ -32,7 +36,13 @@ export default async function EntregasPendentesPage({
       <Suspense>
         <PackageFilters />
       </Suspense>
-      <PackageList packages={pkgs} emptyMessage="Nenhuma entrega pendente." />
+      <PackageList
+        packages={result.items}
+        page={result.page}
+        totalPages={result.totalPages}
+        total={result.total}
+        emptyMessage="Nenhuma entrega pendente."
+      />
     </div>
   );
 }

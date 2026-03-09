@@ -30,20 +30,24 @@ export async function GET(request: NextRequest) {
     ? parsedStatus.data
     : undefined;
   const search = searchParams.get("search");
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get("limit")) || 20;
 
   const role = session.user.role as UserRole;
-  const pkgs = await listPackages(
+  const result = await listPackages(
     {
       status,
       search: search ?? undefined,
+      page,
+      limit,
     },
     role,
     session.user.id,
   );
 
-  return NextResponse.json<ApiResponse<typeof pkgs>>({
+  return NextResponse.json<ApiResponse<typeof result>>({
     success: true,
-    data: pkgs,
+    data: result,
   });
 }
 

@@ -19,6 +19,7 @@ export function PackageFilters() {
       } else {
         params.delete("search");
       }
+      params.delete("page");
       router.push(`?${params.toString()}`);
     }, 300);
   }
