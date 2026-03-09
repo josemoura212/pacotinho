@@ -24,7 +24,7 @@ const roleLabels = {
 
 export function UserMenu() {
   const { user } = useAppSession();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [notifPermission, setNotifPermission] =
     useState<NotificationPermission>("default");
 
@@ -95,13 +95,15 @@ export function UserMenu() {
             <DropdownMenuSeparator />
           </>
         )}
-        <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-          {theme === "dark" ? (
+        <DropdownMenuItem
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+        >
+          {resolvedTheme === "dark" ? (
             <Sun className="mr-2 h-4 w-4" />
           ) : (
             <Moon className="mr-2 h-4 w-4" />
           )}
-          {theme === "dark" ? "Tema claro" : "Tema escuro"}
+          {resolvedTheme === "dark" ? "Tema claro" : "Tema escuro"}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
