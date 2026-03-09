@@ -1,6 +1,6 @@
 {
-  "id": "1bfd4309-8721-42a2-83df-a1867d6f7dd3",
-  "prevId": "db9d4182-c7e6-4956-9267-f00132278167",
+  "id": "db9d4182-c7e6-4956-9267-f00132278167",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -70,12 +70,8 @@
           "name": "package_audit_logs_package_id_packages_id_fk",
           "tableFrom": "package_audit_logs",
           "tableTo": "packages",
-          "columnsFrom": [
-            "package_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["package_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -83,12 +79,8 @@
           "name": "package_audit_logs_user_id_users_id_fk",
           "tableFrom": "package_audit_logs",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -110,17 +102,11 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "tracking_code": {
-          "name": "tracking_code",
-          "type": "varchar(100)",
+        "address": {
+          "name": "address",
+          "type": "varchar(500)",
           "primaryKey": false,
-          "notNull": true
-        },
-        "resident_id": {
-          "name": "resident_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "recipient_name": {
           "name": "recipient_name",
@@ -146,13 +132,25 @@
           "primaryKey": false,
           "notNull": false
         },
+        "tracking_code": {
+          "name": "tracking_code",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "status": {
           "name": "status",
           "type": "package_status",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'ENTREGA_PENDENTE'"
+          "default": "'REGISTRO_PENDENTE'"
         },
         "registered_by_id": {
           "name": "registered_by_id",
@@ -215,11 +213,17 @@
           "method": "btree",
           "with": {}
         },
-        "packages_resident_id_idx": {
-          "name": "packages_resident_id_idx",
+        "packages_apartment_block_idx": {
+          "name": "packages_apartment_block_idx",
           "columns": [
             {
-              "expression": "resident_id",
+              "expression": "apartment",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "block",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -230,11 +234,11 @@
           "method": "btree",
           "with": {}
         },
-        "packages_tracking_code_idx": {
-          "name": "packages_tracking_code_idx",
+        "packages_recipient_name_idx": {
+          "name": "packages_recipient_name_idx",
           "columns": [
             {
-              "expression": "tracking_code",
+              "expression": "recipient_name",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -262,29 +266,12 @@
         }
       },
       "foreignKeys": {
-        "packages_resident_id_users_id_fk": {
-          "name": "packages_resident_id_users_id_fk",
-          "tableFrom": "packages",
-          "tableTo": "users",
-          "columnsFrom": [
-            "resident_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
         "packages_registered_by_id_users_id_fk": {
           "name": "packages_registered_by_id_users_id_fk",
           "tableFrom": "packages",
           "tableTo": "users",
-          "columnsFrom": [
-            "registered_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["registered_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -292,12 +279,8 @@
           "name": "packages_delivered_by_id_users_id_fk",
           "tableFrom": "packages",
           "tableTo": "users",
-          "columnsFrom": [
-            "delivered_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["delivered_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -305,12 +288,8 @@
           "name": "packages_received_by_id_users_id_fk",
           "tableFrom": "packages",
           "tableTo": "users",
-          "columnsFrom": [
-            "received_by_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["received_by_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -431,20 +410,12 @@
     "public.package_status": {
       "name": "package_status",
       "schema": "public",
-      "values": [
-        "REGISTRO_PENDENTE",
-        "ENTREGA_PENDENTE",
-        "ENTREGA_CONCLUIDA"
-      ]
+      "values": ["REGISTRO_PENDENTE", "ENTREGA_PENDENTE", "ENTREGA_CONCLUIDA"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "MORADOR",
-        "PORTEIRO",
-        "ADMIN"
-      ]
+      "values": ["MORADOR", "PORTEIRO", "ADMIN"]
     }
   },
   "schemas": {},

@@ -5,7 +5,7 @@
 - Schema: `src/lib/db/schema.ts` (arquivo único)
 - Conexão: `src/lib/db/index.ts` (pool max 10)
 - Seed: `src/lib/db/seed.ts`
-- Migrations: `./drizzle/migrations/`
+- Migrations: `src/lib/db/migrations/`
 
 ## Convenções
 

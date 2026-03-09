@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "tsx --env-file=.env --tsconfig tsconfig.json server.ts",
+    "dev": "tsx --env-file=.env --tsconfig tsconfig.json src/server.ts",
     "dev:next": "next dev",
     "build": "next build",
-    "start": "tsx server.ts",
+    "start": "tsx src/server.ts",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
     "format": "biome format --write src",

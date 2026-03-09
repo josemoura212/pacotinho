@@ -18,6 +18,7 @@ Sistema de gestão de encomendas para condomínios.
 
 ```
 src/
+├── server.ts            # Servidor HTTP + Socket.IO
 ├── app/
 │   ├── (auth)/          # Páginas públicas (login, alterar senha)
 │   ├── (app)/           # Páginas protegidas (dashboard, encomendas, usuários)
@@ -32,7 +33,7 @@ src/
 ├── hooks/               # Custom hooks (useSession, usePackages, useUsers)
 └── lib/
     ├── auth/            # NextAuth config, permissões
-    ├── db/              # Schema Drizzle, conexão, seed
+    ├── db/              # Schema Drizzle, conexão, seed, migrations
     ├── services/        # Lógica de negócio (package, user, notification, push, audit, upload)
     ├── types/           # Tipos TypeScript (inferidos do Drizzle)
     ├── validations/     # Schemas Zod

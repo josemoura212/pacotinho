@@ -5,4 +5,4 @@ echo "========================================="
 echo "  Pacotinho - Iniciando servidor"
 echo "========================================="
 
-exec ./node_modules/.bin/tsx server.ts
+exec ./node_modules/.bin/tsx src/server.ts

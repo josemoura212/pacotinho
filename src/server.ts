@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
-import { decode } from "next-auth/jwt";
 import next from "next";
+import { decode } from "next-auth/jwt";
 import { Server as SocketServer } from "socket.io";
 import { env } from "@/lib/env";
 
