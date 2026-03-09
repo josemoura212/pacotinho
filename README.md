@@ -77,8 +77,9 @@ Gerar chaves VAPID: `npx web-push generate-vapid-keys`
 
 ## Roadmap
 
-- [ ] Relatórios com exportação CSV/PDF
-- [ ] Gráficos no dashboard (encomendas por dia/semana, tempo médio de entrega)
-- [ ] Notificações por email
-- [ ] QR Code para confirmação de retirada
-- [ ] Logs de acesso (quem logou, quando, de onde)
+- Relatórios com exportação CSV/PDF
+- Gráficos no dashboard (encomendas por dia/semana, tempo médio de entrega)
+- Notificações por email
+- Notificações push em múltiplos dispositivos do mesmo morador
+- QR Code para confirmação de retirada
+- Logs de acesso (quem logou, quando, de onde)
