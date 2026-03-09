@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { uploadFile } from "@/lib/services/upload-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
+import { checkRateLimit } from "@/lib/utils/rate-limit";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -18,6 +19,17 @@ export async function POST(request: Request) {
     return NextResponse.json<ApiResponse<null>>(
       { success: false, error: "Sem permissão" },
       { status: 403 },
+    );
+  }
+
+  const { allowed, resetIn } = checkRateLimit(`upload:${session.user.id}`);
+  if (!allowed) {
+    return NextResponse.json<ApiResponse<null>>(
+      {
+        success: false,
+        error: `Muitas tentativas. Tente novamente em ${Math.ceil(resetIn / 1000)}s`,
+      },
+      { status: 429 },
     );
   }
 
