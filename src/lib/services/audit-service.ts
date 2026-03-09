@@ -34,5 +34,6 @@ export async function getPackageHistory(packageId: string) {
     .from(packageAuditLogs)
     .innerJoin(users, eq(packageAuditLogs.userId, users.id))
     .where(eq(packageAuditLogs.packageId, packageId))
-    .orderBy(desc(packageAuditLogs.createdAt));
+    .orderBy(desc(packageAuditLogs.createdAt))
+    .limit(100);
 }

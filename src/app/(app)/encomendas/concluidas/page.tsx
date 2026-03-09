@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { PackageFilters } from "@/components/packages/package-filters";
 import { PackageList } from "@/components/packages/package-list";
+import { RealtimeRefresh } from "@/components/packages/realtime-refresh";
 import { auth } from "@/lib/auth/auth";
 import { listPackages } from "@/lib/services/package-service";
 import type { UserRole } from "@/lib/types/user";
@@ -23,6 +24,7 @@ export default async function ConcluidasPage({
 
   return (
     <div className="space-y-4">
+      <RealtimeRefresh />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Entregas Concluídas</h1>
         <p className="text-muted-foreground">Encomendas já entregues aos moradores</p>

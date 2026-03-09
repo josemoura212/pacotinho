@@ -12,6 +12,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useSocket } from "@/hooks/use-socket";
 import { cn } from "@/lib/utils";
 
 interface Notification {
@@ -40,6 +41,8 @@ export function NotificationBell() {
   const [items, setItems] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const socket = useSocket();
+
   const fetchCount = useCallback(() => {
     fetch("/api/notifications?count=true")
       .then((res) => res.json())
@@ -51,9 +54,22 @@ export function NotificationBell() {
 
   useEffect(() => {
     fetchCount();
-    const interval = setInterval(fetchCount, 30_000);
+    const interval = setInterval(fetchCount, 60_000);
     return () => clearInterval(interval);
   }, [fetchCount]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handler = (_data: { userId: string }) => {
+      fetchCount();
+    };
+
+    socket.on("notification:new", handler);
+    return () => {
+      socket.off("notification:new", handler);
+    };
+  }, [socket, fetchCount]);
 
   function handleOpen(isOpen: boolean) {
     setOpen(isOpen);

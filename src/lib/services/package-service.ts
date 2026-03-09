@@ -1,6 +1,8 @@
+import type { InferInsertModel } from "drizzle-orm";
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { packages, users } from "@/lib/db/schema";
+import { eventBus } from "@/lib/events/event-bus";
 import type { PackageStatus } from "@/lib/types/package";
 import type { UserRole } from "@/lib/types/user";
 import type {
@@ -9,8 +11,6 @@ import type {
   UpdatePackageInput,
 } from "@/lib/validations/package";
 import { createAuditLog } from "./audit-service";
-import { createNotification } from "./notification-service";
-import { sendPushToUser } from "./push-service";
 
 export async function createPackage(data: CreatePackageInput, registeredById: string) {
   const isComplete = !!data.trackingCode && !!data.residentId;
@@ -75,17 +75,13 @@ export async function createPackage(data: CreatePackageInput, registeredById: st
     return created;
   });
 
-  if (isComplete && data.residentId) {
-    const payload = {
-      title: "Nova encomenda!",
-      body: `${pkg.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
-      url: `/encomendas/${pkg.id}`,
-    };
-    sendPushToUser(data.residentId, payload).catch((err) => {
-      console.error("Falha ao enviar push:", err);
-    });
-    createNotification(data.residentId, payload).catch((err) => {
-      console.error("Falha ao salvar notificação:", err);
+  if (isComplete) {
+    eventBus.emit("package:created", {
+      id: pkg.id,
+      status: pkg.status,
+      residentId: pkg.residentId,
+      recipientName: pkg.recipientName,
+      trackingCode: pkg.trackingCode,
     });
   }
 
@@ -100,19 +96,21 @@ export async function completeRegistration(
   const updated = await db.transaction(async (tx) => {
     const [existing] = await tx
       .select({
-        status: packages.status,
         photoPath: packages.photoPath,
         notes: packages.notes,
       })
       .from(packages)
-      .where(eq(packages.id, id))
+      .where(and(eq(packages.id, id), eq(packages.status, "REGISTRO_PENDENTE")))
       .limit(1);
 
     if (!existing) {
-      throw new Error("Encomenda não encontrada");
-    }
+      const [found] = await tx
+        .select({ id: packages.id })
+        .from(packages)
+        .where(eq(packages.id, id))
+        .limit(1);
 
-    if (existing.status !== "REGISTRO_PENDENTE") {
+      if (!found) throw new Error("Encomenda não encontrada");
       throw new Error("Encomenda já foi completada");
     }
 
@@ -143,8 +141,10 @@ export async function completeRegistration(
         status: "ENTREGA_PENDENTE",
         updatedAt: new Date(),
       })
-      .where(eq(packages.id, id))
+      .where(and(eq(packages.id, id), eq(packages.status, "REGISTRO_PENDENTE")))
       .returning();
+
+    if (!result) throw new Error("Encomenda já foi completada");
 
     await createAuditLog(
       {
@@ -163,16 +163,12 @@ export async function completeRegistration(
     return result;
   });
 
-  const completePayload = {
-    title: "Nova encomenda!",
-    body: `${updated.recipientName}, você tem uma nova encomenda (${data.trackingCode})`,
-    url: `/encomendas/${updated.id}`,
-  };
-  sendPushToUser(data.residentId, completePayload).catch((err) => {
-    console.error("Falha ao enviar push:", err);
-  });
-  createNotification(data.residentId, completePayload).catch((err) => {
-    console.error("Falha ao salvar notificação:", err);
+  eventBus.emit("package:registration_completed", {
+    id: updated.id,
+    status: updated.status,
+    residentId: updated.residentId,
+    recipientName: updated.recipientName,
+    trackingCode: updated.trackingCode,
   });
 
   return updated;
@@ -194,7 +190,9 @@ export async function updatePackage(
       throw new Error("Encomenda não encontrada");
     }
 
-    const updateData: Record<string, unknown> = { updatedAt: new Date() };
+    const updateData: Partial<InferInsertModel<typeof packages>> = {
+      updatedAt: new Date(),
+    };
 
     if (data.trackingCode !== undefined)
       updateData.trackingCode = data.trackingCode ?? null;
@@ -239,41 +237,19 @@ export async function updatePackage(
     return result;
   });
 
-  if (updated.residentId) {
-    const updatePayload = {
-      title: "Encomenda atualizada",
-      body: `${updated.recipientName}, sua encomenda foi atualizada`,
-      url: `/encomendas/${id}`,
-    };
-    sendPushToUser(updated.residentId, updatePayload).catch((err) => {
-      console.error("Falha ao enviar push:", err);
-    });
-    createNotification(updated.residentId, updatePayload).catch((err) => {
-      console.error("Falha ao salvar notificação:", err);
-    });
-  }
+  eventBus.emit("package:updated", {
+    id: updated.id,
+    status: updated.status,
+    residentId: updated.residentId,
+    recipientName: updated.recipientName,
+    trackingCode: updated.trackingCode,
+  });
 
   return updated;
 }
 
 export async function deliverPackage(id: string, deliveredById: string) {
   const updated = await db.transaction(async (tx) => {
-    const [existing] = await tx
-      .select({
-        status: packages.status,
-      })
-      .from(packages)
-      .where(eq(packages.id, id))
-      .limit(1);
-
-    if (!existing) {
-      throw new Error("Encomenda não encontrada");
-    }
-
-    if (existing.status !== "ENTREGA_PENDENTE") {
-      throw new Error("Encomenda não está com entrega pendente");
-    }
-
     const [result] = await tx
       .update(packages)
       .set({
@@ -282,8 +258,19 @@ export async function deliverPackage(id: string, deliveredById: string) {
         deliveredAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(packages.id, id))
+      .where(and(eq(packages.id, id), eq(packages.status, "ENTREGA_PENDENTE")))
       .returning();
+
+    if (!result) {
+      const [existing] = await tx
+        .select({ id: packages.id })
+        .from(packages)
+        .where(eq(packages.id, id))
+        .limit(1);
+
+      if (!existing) throw new Error("Encomenda não encontrada");
+      throw new Error("Encomenda não está com entrega pendente");
+    }
 
     await createAuditLog(
       {
@@ -298,41 +285,19 @@ export async function deliverPackage(id: string, deliveredById: string) {
     return result;
   });
 
-  if (updated.residentId) {
-    const deliverPayload = {
-      title: "Encomenda entregue!",
-      body: `${updated.recipientName}, sua encomenda foi entregue. Confirme o recebimento.`,
-      url: `/encomendas/${id}`,
-    };
-    sendPushToUser(updated.residentId, deliverPayload).catch((err) => {
-      console.error("Falha ao enviar push:", err);
-    });
-    createNotification(updated.residentId, deliverPayload).catch((err) => {
-      console.error("Falha ao salvar notificação:", err);
-    });
-  }
+  eventBus.emit("package:delivered", {
+    id: updated.id,
+    status: updated.status,
+    residentId: updated.residentId,
+    recipientName: updated.recipientName,
+    trackingCode: updated.trackingCode,
+  });
 
   return updated;
 }
 
 export async function confirmReceipt(id: string, receivedById: string) {
   const updated = await db.transaction(async (tx) => {
-    const [existing] = await tx
-      .select({
-        status: packages.status,
-      })
-      .from(packages)
-      .where(eq(packages.id, id))
-      .limit(1);
-
-    if (!existing) {
-      throw new Error("Encomenda não encontrada");
-    }
-
-    if (existing.status !== "ENTREGA_CONCLUIDA") {
-      throw new Error("Encomenda não está com entrega concluída");
-    }
-
     const [result] = await tx
       .update(packages)
       .set({
@@ -340,8 +305,19 @@ export async function confirmReceipt(id: string, receivedById: string) {
         receivedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(packages.id, id))
+      .where(and(eq(packages.id, id), eq(packages.status, "ENTREGA_CONCLUIDA")))
       .returning();
+
+    if (!result) {
+      const [existing] = await tx
+        .select({ id: packages.id })
+        .from(packages)
+        .where(eq(packages.id, id))
+        .limit(1);
+
+      if (!existing) throw new Error("Encomenda não encontrada");
+      throw new Error("Encomenda não está com entrega concluída");
+    }
 
     await createAuditLog(
       {
@@ -356,19 +332,13 @@ export async function confirmReceipt(id: string, receivedById: string) {
     return result;
   });
 
-  if (updated.residentId) {
-    const confirmPayload = {
-      title: "Recebimento confirmado",
-      body: `${updated.recipientName}, o recebimento da sua encomenda foi confirmado`,
-      url: `/encomendas/${id}`,
-    };
-    sendPushToUser(updated.residentId, confirmPayload).catch((err) => {
-      console.error("Falha ao enviar push:", err);
-    });
-    createNotification(updated.residentId, confirmPayload).catch((err) => {
-      console.error("Falha ao salvar notificação:", err);
-    });
-  }
+  eventBus.emit("package:receipt_confirmed", {
+    id: updated.id,
+    status: updated.status,
+    residentId: updated.residentId,
+    recipientName: updated.recipientName,
+    trackingCode: updated.trackingCode,
+  });
 
   return updated;
 }

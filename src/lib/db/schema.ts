@@ -51,7 +51,7 @@ export const packages = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     trackingCode: varchar("tracking_code", { length: 100 }),
-    residentId: uuid("resident_id").references(() => users.id),
+    residentId: uuid("resident_id").references(() => users.id, { onDelete: "set null" }),
     recipientName: varchar("recipient_name", { length: 255 }),
     apartment: varchar("apartment", { length: 20 }),
     block: varchar("block", { length: 20 }),
@@ -59,10 +59,14 @@ export const packages = pgTable(
     notes: text("notes"),
     status: packageStatusEnum("status").default("REGISTRO_PENDENTE").notNull(),
     registeredById: uuid("registered_by_id")
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: "restrict" })
       .notNull(),
-    deliveredById: uuid("delivered_by_id").references(() => users.id),
-    receivedById: uuid("received_by_id").references(() => users.id),
+    deliveredById: uuid("delivered_by_id").references(() => users.id, {
+      onDelete: "restrict",
+    }),
+    receivedById: uuid("received_by_id").references(() => users.id, {
+      onDelete: "restrict",
+    }),
     receivedAt: timestamp("received_at", { withTimezone: true }),
     deliveredAt: timestamp("delivered_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -125,7 +129,7 @@ export const packageAuditLogs = pgTable(
       .references(() => packages.id, { onDelete: "cascade" })
       .notNull(),
     userId: uuid("user_id")
-      .references(() => users.id)
+      .references(() => users.id, { onDelete: "restrict" })
       .notNull(),
     action: auditActionEnum("action").notNull(),
     changes: jsonb("changes"),

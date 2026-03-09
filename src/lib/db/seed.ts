@@ -5,14 +5,39 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { users } from "./schema";
 
+function secureRandomIndex(max: number): number {
+  const limit = Math.floor(0x100000000 / max) * max;
+  let value: number;
+  do {
+    value = randomBytes(4).readUInt32BE(0);
+  } while (value >= limit);
+  return value % max;
+}
+
 function generatePassword(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
-  const bytes = randomBytes(16);
-  let password = "";
-  for (const byte of bytes) {
-    password += chars[byte % chars.length];
+  const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const lower = "abcdefghijklmnopqrstuvwxyz";
+  const digits = "0123456789";
+  const special = "!@#$%&*";
+  const all = upper + lower + digits + special;
+
+  const parts = [
+    upper[secureRandomIndex(upper.length)],
+    lower[secureRandomIndex(lower.length)],
+    digits[secureRandomIndex(digits.length)],
+    special[secureRandomIndex(special.length)],
+  ];
+
+  for (let i = 0; i < 4; i++) {
+    parts.push(all[secureRandomIndex(all.length)]);
   }
-  return password;
+
+  for (let i = parts.length - 1; i > 0; i--) {
+    const j = secureRandomIndex(i + 1);
+    [parts[i], parts[j]] = [parts[j], parts[i]];
+  }
+
+  return parts.join("");
 }
 
 async function seed() {

@@ -45,7 +45,11 @@ export async function sendPushToUser(
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return;
 
   const subs = await db
-    .select()
+    .select({
+      endpoint: pushSubscriptions.endpoint,
+      p256dh: pushSubscriptions.p256dh,
+      auth: pushSubscriptions.auth,
+    })
     .from(pushSubscriptions)
     .where(eq(pushSubscriptions.userId, userId));
 

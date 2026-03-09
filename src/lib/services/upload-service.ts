@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import { env } from "@/lib/env";
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 const MAX_SIZE = 5 * 1024 * 1024;
 const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 
@@ -40,7 +40,7 @@ export async function uploadFile(
   }
 
   const filename = `${crypto.randomUUID()}${detectedType}`;
-  const uploadDir = path.resolve(UPLOAD_DIR);
+  const uploadDir = path.resolve(env.UPLOAD_DIR);
 
   await mkdir(uploadDir, { recursive: true });
 
@@ -54,7 +54,7 @@ export async function getFile(
   filename: string,
 ): Promise<{ buffer: Buffer; contentType: string } | null> {
   const safeName = path.basename(filename);
-  const filePath = path.join(path.resolve(UPLOAD_DIR), safeName);
+  const filePath = path.join(path.resolve(env.UPLOAD_DIR), safeName);
 
   try {
     await access(filePath);

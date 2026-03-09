@@ -1,6 +1,7 @@
 import { CheckCircle, ClipboardList, Package, Truck } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { RealtimeRefresh } from "@/components/packages/realtime-refresh";
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <RealtimeRefresh />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Olá, {firstName}!</h1>
         <p className="text-muted-foreground">Painel de gestão de encomendas.</p>

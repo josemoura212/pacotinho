@@ -26,6 +26,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/server.ts ./server.ts
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/src/lib/db ./src/lib/db
