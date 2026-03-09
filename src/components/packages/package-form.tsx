@@ -1,20 +1,11 @@
 "use client";
 
-import { Camera, Expand, ImageUp, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { DiscardDialog } from "@/components/packages/discard-dialog";
+import { PhotoUploadField } from "@/components/packages/photo-upload-field";
 import { ResidentSelector } from "@/components/packages/resident-selector";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,10 +46,7 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     defaultValues?.photoPath ? `/api/images/${defaultValues.photoPath}` : null,
   );
-
-  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const isCompleting = !!packageId;
@@ -82,34 +69,6 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
         toast.error("Erro ao carregar moradores");
       });
   }, [defaultValues?.residentId]);
-
-  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const result = await res.json();
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      if (photoPreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(photoPreview);
-      }
-
-      setPhotoFilename(result.data.filename);
-      setPhotoPreview(URL.createObjectURL(file));
-      toast.success("Foto anexada!");
-    } catch {
-      toast.error("Erro ao enviar foto. Tente novamente.");
-    }
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -257,74 +216,13 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Foto da encomenda</Label>
-              <div className="flex items-center gap-4">
-                <label className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground hover:bg-accent">
-                  <Camera className="h-4 w-4" />
-                  Tirar foto
-                  <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={handlePhotoUpload}
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="flex cursor-pointer items-center gap-2 rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground hover:bg-accent"
-                  onClick={() => galleryInputRef.current?.click()}
-                >
-                  <ImageUp className="h-4 w-4" />
-                  Escolher arquivo
-                </button>
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoUpload}
-                />
-              </div>
-              {photoPreview && (
-                <div className="relative inline-block">
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    className="h-24 w-24 cursor-pointer rounded object-cover transition-opacity hover:opacity-80"
-                    onClick={() => setPhotoDialogOpen(true)}
-                  />
-                  <button
-                    type="button"
-                    className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm hover:bg-destructive/90"
-                    onClick={() => {
-                      setPhotoFilename(null);
-                      setPhotoPreview(null);
-                    }}
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    className="absolute -bottom-1 -right-1 rounded-full bg-background p-1 shadow-sm border hover:bg-accent"
-                    onClick={() => setPhotoDialogOpen(true)}
-                  >
-                    <Expand className="h-3 w-3" />
-                  </button>
-                  <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
-                    <DialogContent className="max-w-[95vw] max-h-[95vh] p-2 sm:max-w-3xl">
-                      <DialogTitle className="sr-only">Foto da encomenda</DialogTitle>
-                      <img
-                        src={photoPreview}
-                        alt="Foto da encomenda"
-                        className="max-h-[85vh] w-full rounded object-contain"
-                      />
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              )}
-            </div>
+            <PhotoUploadField
+              photoPreview={photoPreview}
+              onPhotoChange={(filename, preview) => {
+                setPhotoFilename(filename);
+                setPhotoPreview(preview);
+              }}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observação</Label>
@@ -359,22 +257,11 @@ export function PackageForm({ packageId, defaultValues }: PackageFormProps) {
         </CardContent>
       </Card>
 
-      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Descartar alterações?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você tem dados preenchidos que serão perdidos.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => router.back()}>
-              Descartar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DiscardDialog
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        onDiscard={() => router.back()}
+      />
     </div>
   );
 }
