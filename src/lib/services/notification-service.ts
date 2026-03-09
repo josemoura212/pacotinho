@@ -68,13 +68,15 @@ export async function broadcastNotification(payload: { title: string; body: stri
     .from(users)
     .where(and(eq(users.role, "MORADOR"), eq(users.active, true)));
 
-  const created = await Promise.all(
-    residents.map((resident) =>
-      createNotification(resident.id, {
-        title: payload.title,
-        body: payload.body,
-      }),
-    ),
+  if (residents.length === 0) return { sent: 0 };
+
+  await db.insert(notifications).values(
+    residents.map((resident) => ({
+      userId: resident.id,
+      title: payload.title,
+      body: payload.body,
+      url: null,
+    })),
   );
 
   Promise.allSettled(
@@ -84,7 +86,7 @@ export async function broadcastNotification(payload: { title: string; body: stri
         body: payload.body,
       }),
     ),
-  ).catch(() => {});
+  );
 
-  return { sent: created.length };
+  return { sent: residents.length };
 }
