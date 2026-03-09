@@ -5,6 +5,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   PackagePlus,
+  Send,
   Truck,
   Users,
 } from "lucide-react";
@@ -53,6 +54,13 @@ export const navItems: NavItem[] = [
     href: "/encomendas/concluidas",
     icon: CheckCircle,
     roles: ["ADMIN", "PORTEIRO", "MORADOR"],
+  },
+  {
+    label: "Notificações",
+    shortLabel: "Notificar",
+    href: "/notificacoes/enviar",
+    icon: Send,
+    roles: ["ADMIN", "PORTEIRO"],
   },
   {
     label: "Usuários",

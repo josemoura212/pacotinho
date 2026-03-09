@@ -1,6 +1,7 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { notifications } from "@/lib/db/schema";
+import { notifications, users } from "@/lib/db/schema";
+import { sendPushToUser } from "@/lib/services/push-service";
 
 export async function createNotification(
   userId: string,
@@ -42,4 +43,48 @@ export async function markAllAsRead(userId: string) {
     .update(notifications)
     .set({ read: true })
     .where(and(eq(notifications.userId, userId), eq(notifications.read, false)));
+}
+
+export async function sendCustomNotification(
+  recipientId: string,
+  payload: { title: string; body: string },
+) {
+  const notification = await createNotification(recipientId, {
+    title: payload.title,
+    body: payload.body,
+  });
+
+  sendPushToUser(recipientId, {
+    title: payload.title,
+    body: payload.body,
+  }).catch(() => {});
+
+  return notification;
+}
+
+export async function broadcastNotification(payload: { title: string; body: string }) {
+  const residents = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.role, "MORADOR"), eq(users.active, true)));
+
+  const created = await Promise.all(
+    residents.map((resident) =>
+      createNotification(resident.id, {
+        title: payload.title,
+        body: payload.body,
+      }),
+    ),
+  );
+
+  Promise.allSettled(
+    residents.map((resident) =>
+      sendPushToUser(resident.id, {
+        title: payload.title,
+        body: payload.body,
+      }),
+    ),
+  ).catch(() => {});
+
+  return { sent: created.length };
 }

@@ -16,7 +16,8 @@ type Resource =
   | "users:edit"
   | "users:delete"
   | "users:reset-password"
-  | "reports:view";
+  | "reports:view"
+  | "notifications:send";
 
 const permissionsMap: Record<UserRole, Set<Resource>> = {
   ADMIN: new Set([
@@ -36,6 +37,7 @@ const permissionsMap: Record<UserRole, Set<Resource>> = {
     "users:delete",
     "users:reset-password",
     "reports:view",
+    "notifications:send",
   ]),
   PORTEIRO: new Set([
     "dashboard",
@@ -47,6 +49,7 @@ const permissionsMap: Record<UserRole, Set<Resource>> = {
     "packages:pending-registration",
     "residents:list",
     "residents:create",
+    "notifications:send",
   ]),
   MORADOR: new Set(["dashboard", "packages:list", "packages:confirm"]),
 };
@@ -64,6 +67,7 @@ const routePermissions: Record<string, Resource> = {
   "/usuarios": "users:list",
   "/usuarios/novo": "users:create",
   "/relatorios": "reports:view",
+  "/notificacoes/enviar": "notifications:send",
 };
 
 export function getRoutePermission(pathname: string): Resource | null {
