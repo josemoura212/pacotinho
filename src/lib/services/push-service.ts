@@ -1,14 +1,11 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import webpush from "web-push";
 import { db } from "@/lib/db";
 import { pushSubscriptions } from "@/lib/db/schema";
+import { env } from "@/lib/env";
 
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY ?? "";
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY ?? "";
-const VAPID_EMAIL = process.env.VAPID_EMAIL ?? "mailto:admin@pacotinho.com";
-
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(env.VAPID_EMAIL, env.VAPID_PUBLIC_KEY, env.VAPID_PRIVATE_KEY);
 }
 
 export async function saveSubscription(
@@ -33,15 +30,19 @@ export async function saveSubscription(
     });
 }
 
-export async function removeSubscription(endpoint: string) {
-  await db.delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+export async function removeSubscription(endpoint: string, userId: string) {
+  await db
+    .delete(pushSubscriptions)
+    .where(
+      and(eq(pushSubscriptions.endpoint, endpoint), eq(pushSubscriptions.userId, userId)),
+    );
 }
 
 export async function sendPushToUser(
   userId: string,
   payload: { title: string; body: string; url?: string },
 ) {
-  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return;
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return;
 
   const subs = await db
     .select()
@@ -59,7 +60,9 @@ export async function sendPushToUser(
       );
     } catch (error: unknown) {
       if (error instanceof webpush.WebPushError && error.statusCode === 410) {
-        await removeSubscription(sub.endpoint);
+        await db
+          .delete(pushSubscriptions)
+          .where(eq(pushSubscriptions.endpoint, sub.endpoint));
       }
     }
   });

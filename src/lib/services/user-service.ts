@@ -21,8 +21,12 @@ const userColumns = {
 } as const;
 
 function secureRandomIndex(max: number): number {
-  const bytes = randomBytes(4);
-  return bytes.readUInt32BE(0) % max;
+  const limit = Math.floor(0x100000000 / max) * max;
+  let value: number;
+  do {
+    value = randomBytes(4).readUInt32BE(0);
+  } while (value >= limit);
+  return value % max;
 }
 
 function generatePassword(): string {

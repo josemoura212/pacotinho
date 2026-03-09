@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { deleteUser, getUserById, updateUser } from "@/lib/services/user-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
+import { isValidUUID } from "@/lib/utils/validate-id";
 import { updateUserSchema } from "@/lib/validations/user";
 
 export async function GET(
@@ -26,6 +27,12 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
   const user = await getUserById(id);
 
   if (!user) {
@@ -61,6 +68,12 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
   const body = await request.json();
   const parsed = updateUserSchema.safeParse(body);
 
@@ -106,6 +119,12 @@ export async function DELETE(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
 
   if (id === session.user.id) {
     return NextResponse.json<ApiResponse<null>>(

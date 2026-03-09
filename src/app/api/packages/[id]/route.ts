@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { getPackageById, updatePackage } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
+import { isValidUUID } from "@/lib/utils/validate-id";
 import { updatePackageSchema } from "@/lib/validations/package";
 
 export async function GET(
@@ -19,6 +20,12 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
   const pkg = await getPackageById(id);
 
   if (!pkg) {
@@ -62,6 +69,12 @@ export async function PATCH(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
   const body = await request.json();
   const parsed = updatePackageSchema.safeParse(body);
 

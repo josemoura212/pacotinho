@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { removeSubscription, saveSubscription } from "@/lib/services/push-service";
 import type { ApiResponse } from "@/lib/types/api";
+import { pushSubscriptionSchema, pushUnsubscribeSchema } from "@/lib/validations/push";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -13,14 +14,16 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  if (!body.endpoint || !body.keys?.p256dh || !body.keys?.auth) {
+  const parsed = pushSubscriptionSchema.safeParse(body);
+
+  if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: "Dados de subscription inválidos" },
+      { success: false, error: parsed.error.issues[0].message },
       { status: 400 },
     );
   }
 
-  await saveSubscription(session.user.id, body);
+  await saveSubscription(session.user.id, parsed.data);
 
   return NextResponse.json<ApiResponse<null>>({ success: true });
 }
@@ -35,14 +38,16 @@ export async function DELETE(request: Request) {
   }
 
   const body = await request.json();
-  if (!body.endpoint) {
+  const parsed = pushUnsubscribeSchema.safeParse(body);
+
+  if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
-      { success: false, error: "Endpoint obrigatório" },
+      { success: false, error: parsed.error.issues[0].message },
       { status: 400 },
     );
   }
 
-  await removeSubscription(body.endpoint);
+  await removeSubscription(parsed.data.endpoint, session.user.id);
 
   return NextResponse.json<ApiResponse<null>>({ success: true });
 }

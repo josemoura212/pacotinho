@@ -13,6 +13,7 @@ export function checkRateLimit(key: string): {
   remaining: number;
   resetIn: number;
 } {
+  ensureCleanup();
   const now = Date.now();
   const entry = store.get(key);
 
@@ -37,11 +38,18 @@ export function checkRateLimit(key: string): {
   };
 }
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of store.entries()) {
-    if (now > entry.resetAt) {
-      store.delete(key);
+let cleanupStarted = false;
+
+function ensureCleanup() {
+  if (cleanupStarted) return;
+  cleanupStarted = true;
+  const timer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of store.entries()) {
+      if (now > entry.resetAt) {
+        store.delete(key);
+      }
     }
-  }
-}, WINDOW_MS);
+  }, WINDOW_MS);
+  timer.unref();
+}

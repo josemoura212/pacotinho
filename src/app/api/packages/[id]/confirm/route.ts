@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/auth/permissions";
 import { confirmReceipt, getPackageById } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
+import { isValidUUID } from "@/lib/utils/validate-id";
 
 export async function POST(
   _request: Request,
@@ -25,6 +26,12 @@ export async function POST(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
 
   const pkg = await getPackageById(id);
   if (!pkg) {

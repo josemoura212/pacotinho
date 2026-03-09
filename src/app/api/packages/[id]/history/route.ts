@@ -4,6 +4,7 @@ import { getPackageHistory } from "@/lib/services/audit-service";
 import { getPackageById } from "@/lib/services/package-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
+import { isValidUUID } from "@/lib/utils/validate-id";
 
 export async function GET(
   _request: Request,
@@ -18,6 +19,12 @@ export async function GET(
   }
 
   const { id } = await params;
+  if (!isValidUUID(id)) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "ID inválido" },
+      { status: 400 },
+    );
+  }
 
   const role = session.user.role as UserRole;
   if (role === "MORADOR") {

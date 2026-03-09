@@ -70,7 +70,7 @@ export const authConfig: NextAuthConfig = {
     signIn: "/login",
   },
   callbacks: {
-    jwt({ token, user, trigger }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id!;
         token.role = user.role;
@@ -78,8 +78,13 @@ export const authConfig: NextAuthConfig = {
         token.block = user.block;
         token.mustChangePassword = user.mustChangePassword;
       }
-      if (trigger === "update") {
-        token.mustChangePassword = false;
+      if (
+        trigger === "update" &&
+        session &&
+        typeof session === "object" &&
+        "mustChangePassword" in session
+      ) {
+        token.mustChangePassword = session.mustChangePassword as boolean;
       }
       return token;
     },
