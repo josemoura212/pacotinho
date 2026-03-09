@@ -18,14 +18,14 @@
 
 ## Stack
 
-| Camada | Tecnologias |
-|--------|-------------|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4, Radix UI |
-| Backend | Next.js API Routes, NextAuth 5, Socket.IO |
-| Banco | PostgreSQL 16, Drizzle ORM |
-| Validação | Zod 4 |
-| Qualidade | Biome, Vitest, Husky |
-| Infra | Docker, Docker Compose |
+| Camada    | Tecnologias                                    |
+| --------- | ---------------------------------------------- |
+| Frontend  | Next.js 16, React 19, Tailwind CSS 4, Radix UI |
+| Backend   | Next.js API Routes, NextAuth 5, Socket.IO      |
+| Banco     | PostgreSQL 16, Drizzle ORM                     |
+| Validação | Zod 4                                          |
+| Qualidade | Biome, Vitest, Husky                           |
+| Infra     | Docker, Docker Compose                         |
 
 ---
 
@@ -48,28 +48,28 @@ Acesse em `http://localhost:3000`.
 
 ## Comandos
 
-| Comando | Descrição |
-|---------|-----------|
-| `pnpm dev` | Servidor de desenvolvimento |
-| `pnpm build` | Build de produção |
-| `pnpm check` | Lint + format + type check |
-| `pnpm test` | Rodar testes |
+| Comando              | Descrição                         |
+| -------------------- | --------------------------------- |
+| `pnpm dev`           | Servidor de desenvolvimento       |
+| `pnpm build`         | Build de produção                 |
+| `pnpm check`         | Lint + format + type check        |
+| `pnpm test`          | Rodar testes                      |
 | `pnpm test:coverage` | Testes com relatório de cobertura |
-| `pnpm db:generate` | Gerar migrations Drizzle |
+| `pnpm db:generate`   | Gerar migrations Drizzle          |
 
 ---
 
 ## Variáveis de Ambiente
 
-| Variável | Obrigatória | Descrição |
-|----------|:-----------:|-----------|
-| `DATABASE_URL` | Sim | Connection string do PostgreSQL |
-| `AUTH_SECRET` | Sim | Secret do NextAuth (`openssl rand -base64 32`) |
-| `AUTH_URL` | Não | URL da aplicação (default: `http://localhost:3000`) |
-| `UPLOAD_DIR` | Não | Diretório de uploads (default: `./uploads`) |
-| `VAPID_PUBLIC_KEY` | Não | Chave pública VAPID para push |
-| `VAPID_PRIVATE_KEY` | Não | Chave privada VAPID |
-| `VAPID_EMAIL` | Não | Email para VAPID |
+| Variável            | Obrigatória | Descrição                                           |
+| ------------------- | :---------: | --------------------------------------------------- |
+| `DATABASE_URL`      |     Sim     | Connection string do PostgreSQL                     |
+| `AUTH_SECRET`       |     Sim     | Secret do NextAuth (`openssl rand -base64 32`)      |
+| `AUTH_URL`          |     Não     | URL da aplicação (default: `http://localhost:3000`) |
+| `UPLOAD_DIR`        |     Não     | Diretório de uploads (default: `./uploads`)         |
+| `VAPID_PUBLIC_KEY`  |     Não     | Chave pública VAPID para push                       |
+| `VAPID_PRIVATE_KEY` |     Não     | Chave privada VAPID                                 |
+| `VAPID_EMAIL`       |     Não     | Email para VAPID                                    |
 
 Gerar chaves VAPID: `npx web-push generate-vapid-keys`
 
@@ -80,6 +80,5 @@ Gerar chaves VAPID: `npx web-push generate-vapid-keys`
 - Relatórios com exportação CSV/PDF
 - Gráficos no dashboard (encomendas por dia/semana, tempo médio de entrega)
 - Notificações por email
-- Notificações push em múltiplos dispositivos do mesmo morador
 - QR Code para confirmação de retirada
 - Logs de acesso (quem logou, quando, de onde)
