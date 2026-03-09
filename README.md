@@ -4,12 +4,32 @@ Sistema de gestão de encomendas para condomínios.
 
 ## Funcionalidades
 
-- Registro e rastreamento de encomendas com foto
-- Notificações push em tempo real (PWA + Socket.IO)
+### Encomendas
+- Registro de encomendas com foto e código de rastreamento
+- Fluxo de status: Registro Pendente → Entrega Pendente → Entrega Concluída
+- Completar registro com dados do morador
+- Entrega e confirmação de recebimento pelo morador
+- Filtros por status (pendentes, concluídas)
+- Histórico de auditoria por encomenda
+
+### Notificações
+- Push notifications via Web Push (VAPID/PWA)
+- Atualizações em tempo real via Socket.IO
+- Central de notificações para ADMIN e PORTEIRO
+- Envio de notificações manuais
+
+### Usuários
+- Cadastro de moradores, porteiros e administradores
 - Controle de acesso por papéis (ADMIN, PORTEIRO, MORADOR)
-- Histórico de auditoria completo
-- Relatórios de encomendas
+- Reset e alteração de senha com política de senha forte
+- Soft delete (desativação de conta)
+
+### Geral
+- Dashboard com resumo de encomendas
+- Relatórios
+- Upload de fotos com validação por magic bytes
 - Tema claro/escuro
+- PWA instalável
 
 ## Stack
 
