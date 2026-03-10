@@ -87,5 +87,31 @@ export const updateUserSchema = z
     },
   );
 
+export const createResidentWithoutAccountSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Nome deve ter no mínimo 2 caracteres")
+    .max(255)
+    .transform((v) => v.trim()),
+  phone: z
+    .string()
+    .max(20)
+    .optional()
+    .transform((v) => v?.trim() || undefined),
+  apartment: z
+    .string()
+    .min(1, "Apartamento é obrigatório")
+    .max(20)
+    .transform((v) => v.trim()),
+  block: z
+    .string()
+    .min(1, "Bloco é obrigatório")
+    .max(20)
+    .transform((v) => v.trim()),
+});
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type CreateResidentWithoutAccountInput = z.infer<
+  typeof createResidentWithoutAccountSchema
+>;

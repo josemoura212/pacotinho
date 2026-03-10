@@ -92,11 +92,26 @@ export function UserList({ users }: UserListProps) {
     }
 
     if (search.trim()) {
-      const lower = search.toLowerCase();
-      result = result.filter(
-        (u) =>
-          u.name.toLowerCase().includes(lower) || u.email.toLowerCase().includes(lower),
-      );
+      const trimmed = search.trim();
+      if (trimmed.includes(",")) {
+        const [blockPart, aptPart] = trimmed
+          .split(",")
+          .map((s) => s.trim().toLowerCase());
+        result = result.filter(
+          (u) =>
+            (blockPart ? u.block?.toLowerCase().includes(blockPart) : true) &&
+            (aptPart ? u.apartment?.toLowerCase().includes(aptPart) : true),
+        );
+      } else {
+        const lower = trimmed.toLowerCase();
+        result = result.filter(
+          (u) =>
+            u.name.toLowerCase().includes(lower) ||
+            u.email?.toLowerCase().includes(lower) ||
+            u.apartment?.toLowerCase().includes(lower) ||
+            u.block?.toLowerCase().includes(lower),
+        );
+      }
     }
 
     return result;
@@ -187,7 +202,7 @@ export function UserList({ users }: UserListProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou e-mail..."
+            placeholder="Buscar por nome, e-mail ou bloco,apt..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9"
@@ -227,10 +242,15 @@ export function UserList({ users }: UserListProps) {
                   <Badge variant="secondary" className={roleColors[user.role]}>
                     {roleLabels[user.role]}
                   </Badge>
+                  {!user.email && (
+                    <Badge variant="outline" className="text-muted-foreground">
+                      Sem conta
+                    </Badge>
+                  )}
                   {!user.active && <Badge variant="destructive">Inativo</Badge>}
                 </div>
               </div>
-              <CardDescription>{user.email}</CardDescription>
+              {user.email && <CardDescription>{user.email}</CardDescription>}
             </CardHeader>
             <CardContent className="flex items-center justify-between pt-0">
               <div>
@@ -239,7 +259,7 @@ export function UserList({ users }: UserListProps) {
                 )}
                 {user.apartment && (
                   <p className="text-sm text-muted-foreground">
-                    Apto {user.apartment} - Bloco {user.block}
+                    Bloco {user.block} - Apto {user.apartment}
                   </p>
                 )}
               </div>
@@ -256,13 +276,15 @@ export function UserList({ users }: UserListProps) {
                       Editar
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleResetPassword(user.id)}
-                    disabled={isResetting}
-                  >
-                    <KeyRound className="mr-2 h-4 w-4" />
-                    Resetar senha
-                  </DropdownMenuItem>
+                  {user.email && (
+                    <DropdownMenuItem
+                      onClick={() => handleResetPassword(user.id)}
+                      disabled={isResetting}
+                    >
+                      <KeyRound className="mr-2 h-4 w-4" />
+                      Resetar senha
+                    </DropdownMenuItem>
+                  )}
                   {user.active && (
                     <>
                       <DropdownMenuSeparator />

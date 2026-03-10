@@ -5,7 +5,11 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import type { UserWithoutPassword } from "@/lib/types/user";
-import type { CreateUserInput, UpdateUserInput } from "@/lib/validations/user";
+import type {
+  CreateResidentWithoutAccountInput,
+  CreateUserInput,
+  UpdateUserInput,
+} from "@/lib/validations/user";
 
 const userColumns = {
   id: users.id,
@@ -122,6 +126,26 @@ export async function createUser(
     }
     throw error;
   }
+}
+
+export async function createResidentWithoutAccount(
+  data: CreateResidentWithoutAccountInput,
+): Promise<UserWithoutPassword> {
+  const [user] = await db
+    .insert(users)
+    .values({
+      name: data.name,
+      email: null,
+      passwordHash: null,
+      role: "MORADOR",
+      phone: data.phone ?? null,
+      apartment: data.apartment,
+      block: data.block,
+      mustChangePassword: false,
+    })
+    .returning(userColumns);
+
+  return user;
 }
 
 export async function updateUser(

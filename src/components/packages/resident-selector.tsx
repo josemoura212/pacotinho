@@ -45,7 +45,16 @@ export function ResidentSelector({
 
   const filtered = useMemo(() => {
     if (!search) return residents;
-    const lower = search.toLowerCase();
+    const trimmed = search.trim();
+    if (trimmed.includes(",")) {
+      const [blockPart, aptPart] = trimmed.split(",").map((s) => s.trim().toLowerCase());
+      return residents.filter(
+        (r) =>
+          (blockPart ? r.block?.toLowerCase().includes(blockPart) : true) &&
+          (aptPart ? r.apartment?.toLowerCase().includes(aptPart) : true),
+      );
+    }
+    const lower = trimmed.toLowerCase();
     return residents.filter(
       (r) =>
         r.name.toLowerCase().includes(lower) ||
@@ -65,7 +74,7 @@ export function ResidentSelector({
           <div>
             <p className="text-sm font-medium">{selected.name}</p>
             <p className="text-xs text-muted-foreground">
-              Apt {selected.apartment} - Bloco {selected.block}
+              Bloco {selected.block} - Apto {selected.apartment}
             </p>
           </div>
           <Button
@@ -85,7 +94,7 @@ export function ResidentSelector({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar morador por nome ou apartamento..."
+            placeholder="Buscar morador por nome ou bloco,apt..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -115,7 +124,7 @@ export function ResidentSelector({
                 <div>
                   <p className="font-medium">{resident.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    Apt {resident.apartment} - Bloco {resident.block}
+                    Bloco {resident.block} - Apto {resident.apartment}
                   </p>
                 </div>
                 {selectedId === resident.id && <Check className="h-4 w-4 text-primary" />}
@@ -178,13 +187,16 @@ function NewResidentDialog({
     setIsLoading(true);
 
     const fd = new FormData(e.currentTarget);
-    const data = {
+    const email = (fd.get("email") as string)?.trim();
+    const data: Record<string, string> = {
       name: fd.get("name") as string,
-      email: fd.get("email") as string,
       phone: fd.get("phone") as string,
       apartment: fd.get("apartment") as string,
       block: fd.get("block") as string,
     };
+    if (email) {
+      data.email = email;
+    }
 
     const res = await fetch("/api/residents", {
       method: "POST",
@@ -209,7 +221,9 @@ function NewResidentDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Cadastrar Morador</DialogTitle>
-          <DialogDescription>A senha será gerada automaticamente</DialogDescription>
+          <DialogDescription>
+            Preencha o e-mail apenas se o morador precisar acessar o sistema
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
@@ -223,14 +237,8 @@ function NewResidentDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="resident-email">E-mail</Label>
-            <Input
-              id="resident-email"
-              name="email"
-              type="email"
-              required
-              disabled={isLoading}
-            />
+            <Label htmlFor="resident-email">E-mail (opcional)</Label>
+            <Input id="resident-email" name="email" type="email" disabled={isLoading} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="resident-phone">Telefone</Label>
@@ -244,6 +252,10 @@ function NewResidentDialog({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label htmlFor="resident-block">Bloco</Label>
+              <Input id="resident-block" name="block" required disabled={isLoading} />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="resident-apartment">Apartamento</Label>
               <Input
                 id="resident-apartment"
@@ -251,10 +263,6 @@ function NewResidentDialog({
                 required
                 disabled={isLoading}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="resident-block">Bloco</Label>
-              <Input id="resident-block" name="block" required disabled={isLoading} />
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>

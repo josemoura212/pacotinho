@@ -36,7 +36,7 @@ export function PackageCard({ pkg, subtitle }: { pkg: Package; subtitle?: string
               {pkg.apartment && (
                 <div className="flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
-                  Apto {pkg.apartment} - Bloco {pkg.block}
+                  Bloco {pkg.block} - Apto {pkg.apartment}
                 </div>
               )}
               {pkg.trackingCode && (

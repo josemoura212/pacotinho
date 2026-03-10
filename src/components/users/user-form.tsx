@@ -33,6 +33,7 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<UserRole>(defaultValues?.role ?? "MORADOR");
+  const [noAccount, setNoAccount] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -42,16 +43,18 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
     const formData = new FormData(e.currentTarget);
     const data: Record<string, unknown> = {
       name: formData.get("name"),
-      email: formData.get("email"),
       role: formData.get("role"),
       phone: formData.get("phone") || undefined,
       apartment: formData.get("apartment") || undefined,
       block: formData.get("block") || undefined,
     };
 
-    const password = formData.get("password") as string;
-    if (password) {
-      data.password = password;
+    if (!noAccount) {
+      data.email = formData.get("email");
+      const password = formData.get("password") as string;
+      if (password) {
+        data.password = password;
+      }
     }
 
     if (mode === "edit") {
@@ -59,7 +62,12 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
       data.active = active === "on";
     }
 
-    const url = mode === "create" ? "/api/users" : `/api/users/${userId}`;
+    const isResidentWithoutAccount = mode === "create" && noAccount;
+    const url = isResidentWithoutAccount
+      ? "/api/residents"
+      : mode === "create"
+        ? "/api/users"
+        : `/api/users/${userId}`;
     const method = mode === "create" ? "POST" : "PATCH";
 
     const response = await fetch(url, {
@@ -83,9 +91,11 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
     }
 
     toast.success(
-      mode === "create"
-        ? "Usuário criado com sucesso!"
-        : "Usuário atualizado com sucesso!",
+      isResidentWithoutAccount
+        ? "Morador cadastrado com sucesso!"
+        : mode === "create"
+          ? "Usuário criado com sucesso!"
+          : "Usuário atualizado com sucesso!",
     );
     router.push("/usuarios");
     router.refresh();
@@ -130,9 +140,11 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
         <CardHeader>
           <CardTitle>{mode === "create" ? "Novo Usuário" : "Editar Usuário"}</CardTitle>
           <CardDescription>
-            {mode === "create"
-              ? "A senha será gerada automaticamente"
-              : "Atualize os dados do usuário"}
+            {mode === "create" && noAccount
+              ? "Morador sem acesso ao sistema"
+              : mode === "create"
+                ? "A senha será gerada automaticamente"
+                : "Atualize os dados do usuário"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,17 +160,19 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                defaultValue={defaultValues?.email}
-                disabled={isLoading}
-              />
-            </div>
+            {!noAccount && (
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={defaultValues?.email}
+                  disabled={isLoading}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="phone">Telefone</Label>
@@ -194,18 +208,24 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
               </select>
             </div>
 
+            {mode === "create" && role === "MORADOR" && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="noAccount"
+                  checked={noAccount}
+                  onChange={(e) => setNoAccount(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                  disabled={isLoading}
+                />
+                <Label htmlFor="noAccount">
+                  Cadastrar sem conta (sem acesso ao sistema)
+                </Label>
+              </div>
+            )}
+
             {role === "MORADOR" && (
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="apartment">Apartamento</Label>
-                  <Input
-                    id="apartment"
-                    name="apartment"
-                    required
-                    defaultValue={defaultValues?.apartment ?? ""}
-                    disabled={isLoading}
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="block">Bloco</Label>
                   <Input
@@ -213,6 +233,16 @@ export function UserForm({ mode, defaultValues, userId }: UserFormProps) {
                     name="block"
                     required
                     defaultValue={defaultValues?.block ?? ""}
+                    disabled={isLoading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="apartment">Apartamento</Label>
+                  <Input
+                    id="apartment"
+                    name="apartment"
+                    required
+                    defaultValue={defaultValues?.apartment ?? ""}
                     disabled={isLoading}
                   />
                 </div>

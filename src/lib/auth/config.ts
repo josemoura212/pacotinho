@@ -48,7 +48,7 @@ export const authConfig: NextAuthConfig = {
           .where(eq(users.email, email))
           .limit(1);
 
-        if (!user || !user.active) return null;
+        if (!user || !user.active || !user.passwordHash) return null;
 
         const isValid = await compare(password, user.passwordHash);
         if (!isValid) return null;

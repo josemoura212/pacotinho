@@ -24,7 +24,7 @@ export default async function EditarUsuarioPage({
         userId={user.id}
         defaultValues={{
           name: user.name,
-          email: user.email,
+          email: user.email ?? "",
           role: user.role,
           phone: user.phone,
           apartment: user.apartment,

@@ -65,6 +65,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!user.passwordHash) {
+    return NextResponse.json<ApiResponse<null>>(
+      { success: false, error: "Usuário sem senha cadastrada" },
+      { status: 400 },
+    );
+  }
+
   const isValid = await compare(parsed.data.currentPassword, user.passwordHash);
   if (!isValid) {
     return NextResponse.json<ApiResponse<null>>(

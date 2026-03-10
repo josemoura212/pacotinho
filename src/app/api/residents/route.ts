@@ -4,10 +4,13 @@ import { auth } from "@/lib/auth/auth";
 import { hasPermission } from "@/lib/auth/permissions";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { createUser } from "@/lib/services/user-service";
+import { createResidentWithoutAccount, createUser } from "@/lib/services/user-service";
 import type { ApiResponse } from "@/lib/types/api";
 import type { UserRole } from "@/lib/types/user";
-import { createUserSchema } from "@/lib/validations/user";
+import {
+  createResidentWithoutAccountSchema,
+  createUserSchema,
+} from "@/lib/validations/user";
 
 export async function GET() {
   const session = await auth();
@@ -67,10 +70,39 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
-  const parsed = createUserSchema.safeParse({
-    ...(body as Record<string, unknown>),
-    role: "MORADOR",
-  });
+  const rawBody = body as Record<string, unknown>;
+  const hasEmail = !!rawBody.email;
+
+  if (hasEmail) {
+    const parsed = createUserSchema.safeParse({
+      ...rawBody,
+      role: "MORADOR",
+    });
+
+    if (!parsed.success) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: parsed.error.issues[0].message },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const user = await createUser(parsed.data);
+      return NextResponse.json<ApiResponse<typeof user>>(
+        { success: true, data: user },
+        { status: 201 },
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Erro ao cadastrar morador";
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: message },
+        { status: 400 },
+      );
+    }
+  }
+
+  const parsed = createResidentWithoutAccountSchema.safeParse(rawBody);
 
   if (!parsed.success) {
     return NextResponse.json<ApiResponse<null>>(
@@ -80,7 +112,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await createUser(parsed.data);
+    const user = await createResidentWithoutAccount(parsed.data);
     return NextResponse.json<ApiResponse<typeof user>>(
       { success: true, data: user },
       { status: 201 },
